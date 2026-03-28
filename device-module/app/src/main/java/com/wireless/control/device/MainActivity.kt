@@ -2,7 +2,6 @@ package com.wireless.control.device
 
 import android.os.Bundle
 import android.util.Log
-import androidx.appcompat.app.AppCompatActivity
 
 /**
  * 设备控制主Activity
@@ -23,9 +22,17 @@ class MainActivity : AppCompatActivity() {
         instance = this
 
         try {
-            Log.i(TAG, "MainActivity created")
+            Log.i(TAG, "✓ MainActivity created")
+            
+            // 检查服务器状态
+            val server = WirelessControlApp.getServer()
+            if (server != null) {
+                Log.i(TAG, "✓ HTTP server is running")
+            } else {
+                Log.w(TAG, "⚠ HTTP server is not running")
+            }
         } catch (e: Exception) {
-            Log.e(TAG, "Failed to initialize MainActivity", e)
+            Log.e(TAG, "✗ Failed to initialize MainActivity", e)
         }
     }
 
