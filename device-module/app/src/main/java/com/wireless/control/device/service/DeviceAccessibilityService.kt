@@ -81,7 +81,7 @@ class DeviceAccessibilityService : AccessibilityService() {
         return android.app.Notification.Builder(this, CHANNEL_ID)
             .setContentTitle("无线群控")
             .setContentText("无障碍服务运行中")
-            .setSmallIcon(android.R.drawable.ic_menu_info)
+            .setSmallIcon(android.R.drawable.ic_menu_info.toInt())
             .setPriority(android.app.Notification.PRIORITY_LOW)
             .build()
     }
