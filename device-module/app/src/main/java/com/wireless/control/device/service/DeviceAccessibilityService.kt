@@ -78,13 +78,11 @@ class DeviceAccessibilityService : AccessibilityService() {
     }
 
     private fun createNotification(): Notification {
-        val notificationId = android.R.drawable.ic_menu_info
-        
-        return Notification.Builder(this, CHANNEL_ID)
+        return android.app.Notification.Builder(this, CHANNEL_ID)
             .setContentTitle("无线群控")
             .setContentText("无障碍服务运行中")
-            .setSmallIcon(notificationId)
-            .setPriority(Notification.PRIORITY_LOW)
+            .setSmallIcon(android.R.drawable.ic_menu_info)
+            .setPriority(android.app.Notification.PRIORITY_LOW)
             .build()
     }
 }

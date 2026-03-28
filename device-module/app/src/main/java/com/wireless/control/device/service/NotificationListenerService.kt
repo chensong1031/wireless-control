@@ -41,7 +41,8 @@ class NotificationListenerService : android.service.notification.NotificationLis
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        startForeground(NOTIFICATION_ID, createNotification())
+        val notification = createNotification()
+        startForeground(NOTIFICATION_ID, notification)
         
         coroutineScope.launch {
             while (true) {
@@ -78,10 +79,11 @@ class NotificationListenerService : android.service.notification.NotificationLis
     }
 
     private fun createNotification(): Notification {
-        return NotificationCompat.Builder(this, CHANNEL_ID)
+        return Notification.Builder(this, CHANNEL_ID)
             .setContentTitle("无线群控")
             .setContentText("通知监听服务运行中")
             .setSmallIcon(android.R.drawable.ic_menu_info)
+            .setPriority(Notification.PRIORITY_LOW)
             .build()
     }
 }

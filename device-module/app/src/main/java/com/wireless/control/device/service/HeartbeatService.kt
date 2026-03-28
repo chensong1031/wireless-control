@@ -79,12 +79,10 @@ class HeartbeatService : Service() {
     }
 
     private fun createNotification(): Notification {
-        val notificationId = android.R.drawable.ic_menu_info
-        
         return Notification.Builder(this, CHANNEL_ID)
             .setContentTitle("无线群控")
             .setContentText("心跳服务运行中")
-            .setSmallIcon(notificationId)
+            .setSmallIcon(android.R.drawable.ic_menu_info)
             .setPriority(Notification.PRIORITY_LOW)
             .build()
     }
