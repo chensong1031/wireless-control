@@ -397,10 +397,36 @@ return Notification.Builder(this, CHANNEL_ID)
 ```
 
 ### 预防措施
-- 使用原生 Notification API 避免兼容性问题
-- 将资源 ID 提取为变量
-- 检查 Android API 版本兼容性
-- 不要使用未使用的变量
+- 使用资源 ID 时，添加 `.toInt()` 进行显式类型转换
+- 不要依赖 Kotlin 的类型推断，尤其是对于 Android 资源
+- 使用原生 API 而不是兼容库
+- 确保使用正确的重载方法
+
+---
+
+## 错误 015: GitHub Actions 使用缓存的代码
+
+**日期：** 2026-03-28  
+**严重程度：** 流程错误
+
+### 错误描述
+本地修改了代码并推送，但 GitHub Actions 仍然使用旧版本的代码进行构建，导致相同的错误重复出现。
+
+### 原因
+1. 本地修改后推送成功，但 GitHub Actions 可能使用了缓存的构建环境
+2. 或者修改没有正确提交/推送
+3. 或者 GitHub Actions 的构建缓存问题
+
+### 解决方案
+1. 确认本地修改已提交（`git commit`）
+2. 确认修改已推送（`git push`）
+3. 触发新的构建，不使用缓存
+4. 检查 GitHub Actions 的缓存设置
+
+### 预防措施
+- 每次推送后，确认 GitHub 上的最新提交
+- 使用 `git log origin/main` 检查远程分支
+- 确认 GitHub Actions 使用最新的代码
 
 ---
 
