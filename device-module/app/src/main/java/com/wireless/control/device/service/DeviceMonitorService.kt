@@ -17,11 +17,6 @@ import kotlinx.coroutines.launch
 
 /**
  * 设备监控服务
- * 
- * 功能：
- * 1. 监控设备状态
- * 2. 收集设备信息
- * 3. 上报到主控服务器
  */
 class DeviceMonitorService : Service() {
 
@@ -46,7 +41,8 @@ class DeviceMonitorService : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        startForeground(NOTIFICATION_ID, createNotification())
+        val notification = createNotification()
+        startForeground(NOTIFICATION_ID, notification)
         
         coroutineScope.launch {
             while (true) {
@@ -83,10 +79,13 @@ class DeviceMonitorService : Service() {
     }
 
     private fun createNotification(): Notification {
-        return NotificationCompat.Builder(this, CHANNEL_ID)
+        val notificationId = android.R.drawable.ic_menu_info
+        
+        return Notification.Builder(this, CHANNEL_ID)
             .setContentTitle("无线群控")
             .setContentText("设备监控服务运行中")
-            .setSmallIcon(android.R.drawable.ic_menu_info)
+            .setSmallIcon(notificationId)
+            .setPriority(Notification.PRIORITY_LOW)
             .build()
     }
 }

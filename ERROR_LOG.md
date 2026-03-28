@@ -370,6 +370,39 @@ distributionUrl=https\://services.gradle.org/distributions/gradle-8.2-bin.zip
 
 ---
 
+## 错误 013: NotificationCompat.Builder 资源引用错误
+
+**日期：** 2026-03-28  
+**严重程度：** 编译错误
+
+### 错误信息
+```
+Unresolved reference: ic_menu_info
+```
+
+### 原因
+`NotificationCompat.Builder` 在某些情况下无法正确解析 `android.R.drawable.ic_menu_info`，需要将资源 ID 提取为变量。
+
+### 解决方案
+使用原生的 `Notification.Builder` 并将资源 ID 提取为变量：
+```kotlin
+// 错误
+.setSmallIcon(android.R.drawable.ic_menu_info)
+
+// 正确
+val notificationId = android.R.drawable.ic_menu_info
+return Notification.Builder(this, CHANNEL_ID)
+    .setSmallIcon(notificationId)
+    .build()
+```
+
+### 预防措施
+- 使用原生 Notification API 避免兼容性问题
+- 将资源 ID 提取为变量
+- 检查 Android API 版本兼容性
+
+---
+
 ## 总结和原则
 
 ### 开发原则
@@ -415,4 +448,4 @@ distributionUrl=https\://services.gradle.org/distributions/gradle-8.2-bin.zip
 
 **最后更新：** 2026-03-28  
 **维护人：** AI Assistant  
-**总错误数：** 12
+**总错误数：** 13

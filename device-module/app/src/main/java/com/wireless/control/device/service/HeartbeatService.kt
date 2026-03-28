@@ -17,11 +17,6 @@ import kotlinx.coroutines.launch
 
 /**
  * 心跳服务
- * 
- * 功能：
- * 1. 定期向主控服务器发送心跳
- * 2. 保持连接活跃
- * 3. 检测连接状态
  */
 class HeartbeatService : Service() {
 
@@ -46,7 +41,8 @@ class HeartbeatService : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        startForeground(NOTIFICATION_ID, createNotification())
+        val notification = createNotification()
+        startForeground(NOTIFICATION_ID, notification)
         
         coroutineScope.launch {
             while (true) {
@@ -83,10 +79,13 @@ class HeartbeatService : Service() {
     }
 
     private fun createNotification(): Notification {
-        return NotificationCompat.Builder(this, CHANNEL_ID)
+        val notificationId = android.R.drawable.ic_menu_info
+        
+        return Notification.Builder(this, CHANNEL_ID)
             .setContentTitle("无线群控")
             .setContentText("心跳服务运行中")
-            .setSmallIcon(android.R.drawable.ic_menu_info)
+            .setSmallIcon(notificationId)
+            .setPriority(Notification.PRIORITY_LOW)
             .build()
     }
 }

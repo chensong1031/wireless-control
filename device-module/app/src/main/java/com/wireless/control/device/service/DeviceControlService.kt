@@ -17,11 +17,6 @@ import kotlinx.coroutines.launch
 
 /**
  * 设备控制服务
- * 
- * 功能：
- * 1. 启动 HTTP 服务器
- * 2. 接收控制命令
- * 3. 执行设备操作
  */
 class DeviceControlService : Service() {
 
@@ -46,7 +41,8 @@ class DeviceControlService : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        startForeground(NOTIFICATION_ID, createNotification())
+        val notification = createNotification()
+        startForeground(NOTIFICATION_ID, notification)
         
         coroutineScope.launch {
             while (true) {
@@ -83,10 +79,13 @@ class DeviceControlService : Service() {
     }
 
     private fun createNotification(): Notification {
-        return NotificationCompat.Builder(this, CHANNEL_ID)
+        val notificationId = android.R.drawable.ic_menu_info
+        
+        return Notification.Builder(this, CHANNEL_ID)
             .setContentTitle("无线群控")
             .setContentText("设备控制服务运行中")
-            .setSmallIcon(android.R.drawable.ic_menu_info)
+            .setSmallIcon(notificationId)
+            .setPriority(Notification.PRIORITY_LOW)
             .build()
     }
 }
