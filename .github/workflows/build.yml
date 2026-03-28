@@ -7,86 +7,43 @@ on:
     branches: [ main, master ]
   workflow_dispatch
 
-env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+    - uses: actions/checkout@v4
 
-    - name: Set up JDK 17
-      uses: actions/setup-java@v4
+    - uses: actions/setup-java@v4
       with:
         java-version: '17'
         distribution: 'temurin'
 
-    - name: Setup Android SDK
-      uses: android-actions/setup-android@v2
+    - uses: android-actions/setup-android@v2
 
-    - name: Cache Gradle packages
-      uses: actions/cache@v4
+    - uses: actions/cache@v4
       with:
         path: |
           ~/.gradle/caches
           ~/.gradle/wrapper
-        key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-        restore-keys: |
-          ${{ runner.os }}-gradle-
+        key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*') }}
 
-    - name: Grant execute permission for gradlew
-      run: chmod +x device-module/gradlew
-
-    - name: List device-module contents
-      working-directory: ./device-module
-      run: |
-        echo "=== Directory Structure ==="
-        ls -la
-        echo ""
-        echo "=== Gradle Files ==="
-        find . -name "*.gradle" -o -name "gradlew" | head -20
-        echo ""
-        echo "=== Source Files ==="
-        find app/src/main/java -name "*.kt" | head -10
+    - run: chmod +x device-module/gradlew
 
     - name: Build Debug APK
       working-directory: ./device-module
-      run: ./gradlew assembleDebug --stacktrace --info
+      run: ./gradlew assembleDebug --stacktrace
 
-    - name: Check APK output
-      working-directory: ./device-module
-      run: |
-        echo "=== Build Output ==="
-        ls -la app/build/outputs/apk/debug/ || echo "No debug APK found"
-
-    - name: Upload Debug APK
-      uses: actions/upload-artifact@v4
+    - uses: actions/upload-artifact@v4
       with:
         name: debug-apk
         path: device-module/app/build/outputs/apk/debug/*.apk
 
     - name: Build Release APK
       working-directory: ./device-module
-      run: ./gradlew assembleRelease --stacktrace --info
+      run: ./gradlew assembleRelease --stacktrace
 
-    - name: Check Release APK output
-      working-directory: ./device-module
-      run: |
-        echo "=== Release Build Output ==="
-        ls -la app/build/outputs/apk/release/ || echo "No release APK found"
-
-    - name: Upload Release APK
-      uses: actions/upload-artifact@v4
+    - uses: actions/upload-artifact@v4
       with:
         name: release-apk
         path: device-module/app/build/outputs/apk/release/*.apk
-
-    - name: Upload build logs
-      if: always()
-      uses: actions/upload-artifact@v4
-      with:
-        name: build-logs
-        path: device-module/app/build/reports/
