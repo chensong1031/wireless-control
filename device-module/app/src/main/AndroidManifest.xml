@@ -1,30 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <!-- Xposed 模块声明 -->
-    <meta-data
-        android:name="xposedmodule"
-        android:value="true" />
-
-    <!-- Xposed 描述 -->
-    <meta-data
-        android:name="xposeddescription"
-        android:value="无线群控设备端模块，用于 Hook 微信/QQ 消息和系统UI" />
-
-    <!-- Xposed API 版本 -->
-    <meta-data
-        android:name="xposedminversion"
-        android:value="53" />
-
-    <!-- Xposed 作用域 -->
-    <meta-data
-        android:name="xposedscope"
-        android:value="com.tencent.mm,com.tencent.mobileqq,com.android.systemui" />
-
     <application
         android:allowBackup="true"
         android:label="无线群控"
         android:supportsRtl="true">
+
+        <!-- Xposed 模块声明 -->
+        <meta-data
+            android:name="xposedmodule"
+            android:value="true" />
+
+        <!-- Xposed 描述 -->
+        <meta-data
+            android:name="xposeddescription"
+            android:value="无线群控设备端模块，用于 Hook 微信/QQ 消息和系统UI" />
+
+        <!-- Xposed API 版本 -->
+        <meta-data
+            android:name="xposedminversion"
+            android:value="53" />
+
+        <!-- Xposed 作用域 -->
+        <meta-data
+            android:name="xposedscope"
+            android:value="com.tencent.mm,com.tencent.mobileqq,com.android.systemui" />
 
         <activity
             android:name=".MainActivity"
