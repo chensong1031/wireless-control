@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Wireless Control</string>
+    <string name="xposed_description">无线群控设备端模块 - 支持应用Hook、设备控制、远程监控</string>
+    <string name="accessibility_service_description">无线群控设备控制 - 支持点击、滑动、文本输入等操作</string>
+    <string name="action_start">启动服务</string>
+    <string name="action_stop">停止服务</string>
+    <string name="service_status">服务状态</string>
+    <string name="server_address">服务器地址</string>
+    <string name="device_id">设备ID</string>
+    <string name="connected">已连接</string>
+    <string name="disconnected">未连接</string>
+    <string name="starting">启动中…</string>
+    <string name="stopping">停止中…</string>
+</resources>

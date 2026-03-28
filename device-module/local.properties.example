@@ -1,0 +1,20 @@
+# 签名密钥配置（Release版本）
+# 将你的签名密钥信息填写在这里
+
+# 签名密钥文件路径（相对于项目根目录）
+# 示例：RELEASE_STORE_FILE=keystore/wireless-control.jks
+RELEASE_STORE_FILE=keystore/wireless-control.jks
+
+# 签名密钥密码
+RELEASE_STORE_PASSWORD=your_store_password
+
+# 密钥别名
+RELEASE_KEY_ALIAS=wireless_control
+
+# 密钥密码
+RELEASE_KEY_PASSWORD=your_key_password
+
+# 注意：
+# 1. 将此文件添加到.gitignore，不要提交到版本控制
+# 2. 上面的密码仅作示例，请替换为你自己的真实密码
+# 3. 第一次构建时，gradle会提示你输入密码
