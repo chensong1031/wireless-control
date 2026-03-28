@@ -82,7 +82,7 @@ class NotificationListenerService : android.service.notification.NotificationLis
         return Notification.Builder(this, CHANNEL_ID)
             .setContentTitle("无线群控")
             .setContentText("通知监听服务运行中")
-            .setSmallIcon(android.R.drawable.ic_menu_info.toInt())
+            .setSmallIcon(android.R.drawable.ic_dialog_info.toInt())
             .setPriority(Notification.PRIORITY_LOW)
             .build()
     }

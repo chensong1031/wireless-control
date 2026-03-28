@@ -2,6 +2,7 @@ package com.wireless.control.device
 
 import android.os.Bundle
 import android.util.Log
+import androidx.appcompat.app.AppCompatActivity
 
 /**
  * 设备控制主Activity
@@ -11,7 +12,7 @@ class MainActivity : AppCompatActivity() {
     companion object {
         private const val TAG = "MainActivity"
         private var instance: MainActivity? = null
-        
+
         fun getInstance(): MainActivity? {
             return instance
         }

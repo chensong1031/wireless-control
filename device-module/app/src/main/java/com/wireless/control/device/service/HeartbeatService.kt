@@ -82,7 +82,7 @@ class HeartbeatService : Service() {
         return Notification.Builder(this, CHANNEL_ID)
             .setContentTitle("无线群控")
             .setContentText("心跳服务运行中")
-            .setSmallIcon(android.R.drawable.ic_menu_info.toInt())
+            .setSmallIcon(android.R.drawable.ic_dialog_info.toInt())
             .setPriority(Notification.PRIORITY_LOW)
             .build()
     }
