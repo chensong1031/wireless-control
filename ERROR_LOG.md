@@ -694,3 +694,134 @@ import androidx.appcompat.app.AppCompatActivity
 **最后更新：** 2026-03-28 16:20  
 **维护人：** AI Assistant  
 **总错误数：** 17
+
+---
+
+## 错误 018: Xposed 模块无法被 LSPosed 识别
+
+**日期：** 2026-03-28  
+**严重程度：** 错误（功能无法使用）
+
+### 错误现象
+- APK 安装成功
+- 在 LSPosed 中看不到模块
+- 模块列表为空或没有显示 "无线群控"
+
+### 根本原因
+**Xposed meta-data 位置错误！**
+
+在 `AndroidManifest.xml` 中，所有 Xposed 相关的 `<meta-data>` 标签被放在了 `<manifest>` 标签下，但必须放在 `<application>` 标签**内部**才能被 LSPosed 正确识别。
+
+**错误的结构：**
+```xml
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    
+    <!-- ❌ 错误：在 manifest 标签下 -->
+    <meta-data android:name="xposedmodule" android:value="true" />
+    <meta-data android:name="xposeddescription" ... />
+    <meta-data android:name="xposedminversion" ... />
+    <meta-data android:name="xposedscope" ... />
+
+    <application ...>
+        <activity ... />
+    </application>
+
+</manifest>
+```
+
+**正确的结构：**
+```xml
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    
+    <application ...>
+        <!-- ✅ 正确：在 application 标签内 -->
+        <meta-data android:name="xposedmodule" android:value="true" />
+        <meta-data android:name="xposeddescription" ... />
+        <meta-data android:name="xposedminversion" ... />
+        <meta-data android:name="xposedscope" ... />
+
+        <activity ... />
+    </application>
+
+</manifest>
+```
+
+### 为什么必须放在 <application> 标签内？
+
+LSPosed 在扫描已安装的应用时，会：
+1. 解析 APK 的 `AndroidManifest.xml`
+2. 查找 `<application>` 标签内的 `<meta-data>` 标签
+3. 检查 `xposedmodule=true` 的 meta-data
+4. 如果找到，则读取 `xposed_init` 文件并加载模块
+
+如果 meta-data 不在 `<application>` 标签内，LSPosed 就无法检测到该应用是 Xposed 模块。
+
+### 解决方案
+将所有 Xposed meta-data 从 `<manifest>` 标签移动到 `<application>` 标签内部。
+
+### 修改内容
+**文件：** `device-module/app/src/main/AndroidManifest.xml`
+
+移动了以下 meta-data：
+- `xposedmodule` - 标识这是 Xposed 模块
+- `xposeddescription` - 模块描述
+- `xposedminversion` - 最低 Xposed API 版本
+- `xposedscope` - Hook 目标应用
+
+### 验证步骤
+修复后，重新安装 APK：
+```bash
+adb uninstall com.wireless.control.device
+adb install app-debug.apk
+adb reboot
+```
+
+然后在 LSPosed 中应该能看到：
+- ✅ 模块列表显示 "无线群控"
+- ✅ 模块状态为白色（已加载）
+- ✅ 可以点击模块查看详情和配置作用域
+
+### 关键知识点
+1. **Xposed 模块配置要求**：
+   - `assets/xposed_init` 文件必须存在并指向正确的入口类
+   - AndroidManifest.xml 中必须有正确的 Xposed meta-data
+   - 所有 Xposed meta-data 必须在 `<application>` 标签内
+
+2. **Android Manifest 结构**：
+   - `<manifest>` 是根标签
+   - `<application>` 是应用级别的标签
+   - 大多数 meta-data 应该放在 `<application>` 内部
+
+3. **LSPosed 识别机制**：
+   - 扫描已安装应用
+   - 解析 AndroidManifest.xml
+   - 查找 xposedmodule meta-data
+   - 读取 xposed_init 文件
+   - 加载模块类
+
+### 预防措施
+1. **遵循 Xposed 开发规范**：严格按照官方文档配置
+2. **参考示例项目**：查看其他 Xposed 模块的 AndroidManifest.xml
+3. **及时测试**：每次修改后都重新安装并测试 LSPosed 识别
+4. **理解原理**：了解 LSPosed 如何识别和加载模块
+
+### 经验教训
+- XML 标签的位置非常重要
+- LSPosed 对配置有严格的要求
+- 小的配置错误会导致完全无法识别
+- 必须先确保模块能被识别，再实现具体功能
+
+---
+
+**维护规则：**
+1. 每次遇到新的错误都记录到这里
+2. 提供详细的原因分析
+3. 给出具体的解决方案
+4. 总结预防措施
+5. 更新总错误数
+
+---
+
+**最后更新：** 2026-03-28 16:30  
+**维护人：** AI Assistant  
+**总错误数：** 18
