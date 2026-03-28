@@ -17,11 +17,6 @@ import kotlinx.coroutines.launch
 
 /**
  * 通知监听服务
- * 
- * 功能：
- * 1. 监听应用通知
- * 2. 拦截微信/QQ 消息
- * 3. 上报消息内容
  */
 class NotificationListenerService : android.service.notification.NotificationListenerService() {
 
@@ -86,7 +81,7 @@ class NotificationListenerService : android.service.notification.NotificationLis
         return NotificationCompat.Builder(this, CHANNEL_ID)
             .setContentTitle("无线群控")
             .setContentText("通知监听服务运行中")
-            .setSmallIcon(R.drawable.ic_launcher_foreground)
+            .setSmallIcon(android.R.drawable.ic_menu_info)
             .build()
     }
 }

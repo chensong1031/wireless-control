@@ -1,13 +1,8 @@
 package com.wireless.control.device
 
-import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import android.provider.Settings
-import android.text.TextUtils
 import android.util.Log
-import android.widget.Toast
-import android.net.InetAddress
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.wireless.control.device.server.DeviceControlServer
@@ -22,12 +17,6 @@ import kotlinx.coroutines.launch
 
 /**
  * 设备控制主Activity
- *
- * 功能：
- * 1. 启动HTTP API服务器
- * 2. 启动监控服务
- * 3. 启动心跳服务
- * 4. 注册到主控服务器
  */
 
 class MainActivity : AppCompatActivity() {
@@ -35,6 +24,10 @@ class MainActivity : AppCompatActivity() {
     companion object {
         private const val TAG = "MainActivity"
         private var instance: MainActivity? = null
+        
+        fun getInstance(): MainActivity? {
+            return instance
+        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -76,12 +69,6 @@ class MainActivity : AppCompatActivity() {
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to start services", e)
             }
-        }
-    }
-
-    companion object {
-        fun getInstance(): MainActivity? {
-            return instance
         }
     }
 }

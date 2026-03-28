@@ -1,7 +1,9 @@
 package com.wireless.control.device.service
 
+import android.app.Notification
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.accessibilityservice.AccessibilityService
-import android.accessibilityservice.GestureDescription
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
@@ -14,11 +16,6 @@ import kotlinx.coroutines.launch
 
 /**
  * 无障碍服务
- * 
- * 功能：
- * 1. 模拟用户操作（点击、滑动、输入）
- * 2. 获取屏幕元素信息
- * 3. 监听界面变化
  */
 class DeviceAccessibilityService : AccessibilityService() {
 
@@ -43,10 +40,9 @@ class DeviceAccessibilityService : AccessibilityService() {
         Log.i(TAG, "AccessibilityService connected")
     }
 
-    override fun onAccessibilityEvent(event: AccessibilityEvent): Boolean {
+    override fun onAccessibilityEvent(event: AccessibilityEvent) {
         // 处理无障碍事件
         Log.d(TAG, "AccessibilityEvent: ${event.eventType}")
-        return true
     }
 
     override fun onInterrupt() {
@@ -84,7 +80,7 @@ class DeviceAccessibilityService : AccessibilityService() {
         return NotificationCompat.Builder(this, CHANNEL_ID)
             .setContentTitle("无线群控")
             .setContentText("无障碍服务运行中")
-            .setSmallIcon(R.drawable.ic_launcher_foreground)
+            .setSmallIcon(android.R.drawable.ic_menu_info)
             .build()
     }
 }
