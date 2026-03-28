@@ -400,6 +400,47 @@ return Notification.Builder(this, CHANNEL_ID)
 - 使用原生 Notification API 避免兼容性问题
 - 将资源 ID 提取为变量
 - 检查 Android API 版本兼容性
+- 不要使用未使用的变量
+
+---
+
+## 错误 014: setSmallIcon 类型歧义和未使用变量
+
+**日期：** 2026-03-28  
+**严重程度：** 编译错误
+
+### 错误信息
+```
+Unresolved reference: ic_menu_info
+Overload resolution ambiguity:
+public open fun setSmallIcon(p0: Icon!): Notification.Builder defined in android.app.Notification.Builder
+public open fun setSmallIcon(p0: Int): Notification.Builder defined in android.app.Notification.Builder
+```
+
+### 原因
+1. 直接在 `setSmallIcon()` 中使用资源 ID，Kotlin 无法推断类型
+2. 定义了未使用的变量 `val notificationId = android.R.drawable.ic_menu_info`
+3. `setSmallIcon()` 需要 Int 类型，但 Kotlin 推断为 Icon
+
+### 解决方案
+直接在 `setSmallIcon()` 中使用资源 ID，不要提取为变量：
+```kotlin
+// 错误 1
+.setSmallIcon(android.R.drawable.ic_menu_info)  // 无法推断类型
+
+// 错误 2
+val notificationId = android.R.drawable.ic_menu_info
+.setSmallIcon(notificationId)  // 未使用变量
+
+// 正确
+.setSmallIcon(android.R.drawable.ic_menu_info)  // 但要避免类型歧义
+```
+
+### 预防措施
+- 直接使用 `android.R.drawable.xxx` 资源
+- 不要定义未使用的变量
+- 使用原生 API 而不是兼容库
+- 确保使用正确的重载方法
 
 ---
 
@@ -448,4 +489,4 @@ return Notification.Builder(this, CHANNEL_ID)
 
 **最后更新：** 2026-03-28  
 **维护人：** AI Assistant  
-**总错误数：** 13
+**总错误数：** 14
