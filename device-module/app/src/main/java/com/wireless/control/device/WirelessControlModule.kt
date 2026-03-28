@@ -230,13 +230,13 @@ class WirelessControlModule : IXposedHookLoadPackage {
             val msgType = XposedHelpers.getObjectField(msgObj, "type") as? Int
 
             when (msgType) {
-                1 -> "[文本] ${content ?: "空内容"}"
-                3 -> "[图片] ${content ?: ""}"
-                34 -> "[语音] ${content ?: ""}"
-                43 -> "[视频] ${content ?: ""}"
-                47 -> "[表情] ${content ?: ""}"
-                49 -> "[链接] ${content ?: ""}"
-                else -> "[类型$msgType] ${content ?: ""}"
+                1 -> "[文本] ${contentField ?: "空内容"}"
+                3 -> "[图片] ${contentField ?: ""}"
+                34 -> "[语音] ${contentField ?: ""}"
+                43 -> "[视频] ${contentField ?: ""}"
+                47 -> "[表情] ${contentField ?: ""}"
+                49 -> "[链接] ${contentField ?: ""}"
+                else -> "[类型$msgType] ${contentField ?: ""}"
             }
         } catch (e: Exception) {
             Log.d(TAG, "Failed to parse message: ${e.message}")
