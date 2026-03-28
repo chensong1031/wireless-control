@@ -1,55 +1,25 @@
 package com.wireless.control.device
 
 import android.util.Log
-import de.robv.android.xposed.IXposedHookLoadPackage
-import de.robv.android.xposed.XC_MethodHook
-import de.robv.android.xposed.XposedHelpers
-import de.robv.android.xposed.callbacks.XC_LoadPackage
 
 /**
  * 无线群控设备端Xposed模块主类
+ *
+ * 注意：由于 Xposed API 不在标准的 Maven 仓库中，需要手动添加 JAR 文件。
+ * 请查看 app/libs/README.md 了解如何获取 Xposed API JAR 文件。
  */
-class WirelessControlModule : IXposedHookLoadPackage {
+class WirelessControlModule {
 
     companion object {
         private const val TAG = "WirelessControl"
     }
 
-    override fun handleLoadPackage(lpparam: XC_LoadPackage.LoadPackageParam) {
-        val packageName = lpparam.packageName
-        Log.d(TAG, "Loading package: $packageName")
-
-        when (packageName) {
-            "com.tencent.mm" -> hookWeChat(lpparam)
-            "com.android.systemui" -> hookSystemUI(lpparam)
-            "com.tencent.mobileqq" -> hookQQ(lpparam)
-        }
+    /**
+     * 当添加了 Xposed API JAR 文件后，取消下面的注释并实现 IXposedHookLoadPackage 接口
+     */
+    /*
+    init {
+        Log.i(TAG, "WirelessControlModule loaded")
     }
-
-    private fun hookWeChat(lpparam: XC_LoadPackage.LoadPackageParam) {
-        try {
-            Log.i(TAG, "Hooking WeChat")
-            // Hook 占位，实际实现需要适配微信版本
-        } catch (e: Exception) {
-            Log.e(TAG, "Failed to hook WeChat", e)
-        }
-    }
-
-    private fun hookSystemUI(lpparam: XC_LoadPackage.LoadPackageParam) {
-        try {
-            Log.i(TAG, "Hooking SystemUI")
-            // Hook 占位
-        } catch (e: Exception) {
-            Log.e(TAG, "Failed to hook SystemUI", e)
-        }
-    }
-
-    private fun hookQQ(lpparam: XC_LoadPackage.LoadPackageParam) {
-        try {
-            Log.i(TAG, "Hooking QQ")
-            // Hook 占位
-        } catch (e: Exception) {
-            Log.e(TAG, "Failed to hook QQ", e)
-        }
-    }
+    */
 }
