@@ -516,3 +516,181 @@ val notificationId = android.R.drawable.ic_menu_info
 **最后更新：** 2026-03-28  
 **维护人：** AI Assistant  
 **总错误数：** 14
+
+---
+
+## 错误 016: Android 资源链接错误（缺少图标资源和不支持的属性）
+
+**日期：** 2026-03-28  
+**严重程度：** 错误（阻塞构建）
+
+### 错误信息
+```
+AAPT: error: resource mipmap/ic_launcher (aka com.wireless.control.device:mipmap/ic_launcher) not found.
+AAPT: error: resource mipmap/ic_launcher_round (aka com.wireless.control.device:mipmap/ic_launcher_round) not found.
+AAPT: error: attribute android:usesCleartextForLocalization not found.
+```
+
+### 原因
+1. **AndroidManifest.xml** 引用了不存在的图标资源 `@mipmap/ic_launcher` 和 `@mipmap/ic_launcher_round`
+2. 使用了 Android 不支持的属性 `android:usesCleartextForLocalization`
+3. **application 标签语法错误** - 使用了自关闭标签 `/>` 但内部还有子元素
+
+### 解决方案
+1. **移除图标引用**：对于 Xposed 模块，不需要启动图标
+2. **移除不支持的属性**：删除 `android:usesCleartextForLocalization`
+3. **使用硬编码的应用名称**：将 `@string/app_name` 改为 `"无线群控"`
+4. **修复 XML 语法**：将 `application />` 改为 `application>...</application>`
+
+**修复后的 AndroidManifest.xml：**
+```xml
+<application
+    android:allowBackup="true"
+    android:label="无线群控"
+    android:supportsRtl="true">
+
+    <activity
+        android:name=".MainActivity"
+        android:exported="true">
+        <intent-filter>
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="android.intent.category.LAUNCHER" />
+        </intent-filter>
+    </activity>
+
+</application>
+```
+
+**修改的文件：**
+- `device-module/app/src/main/AndroidManifest.xml`
+- `device-module/app/src/main/java/com/wireless/control/device/MainActivity.kt`（简化代码）
+- 删除了 `device-module/app/src/main/res/layout/activity_main.xml`（不需要）
+
+### 预防措施
+1. **检查资源文件存在性**：引用任何资源前，确认文件存在
+2. **使用 Android 官方文档验证属性**：不使用未经验证的自定义属性
+3. **验证 XML 语法**：自关闭标签不能包含子元素
+4. **Xposed 模块特殊要求**：
+   - Xposed 模块不需要图标资源
+   - 可以简化为纯 Xposed Hook 功能
+   - Activity 不是必需的，但推荐保留用于调试
+
+### 关键知识点
+- **Xposed 模块的特殊性**：作为系统模块，不需要启动图标
+- **资源管理**：Android 资源必须先在 `res/` 目录下创建才能引用
+- **XML 语法**：自关闭标签 `/>` 不能包含子元素，使用 `>...</...>` 封闭标签
+- **属性兼容性**：只使用 Android 官方文档中列出的属性
+
+### 经验教训
+- 简化不必要的资源引用可以快速解决构建问题
+- Xposed 模块的核心功能是 Hook，UI 和资源可以最小化
+- 每次修改 XML 后，先验证语法再提交
+
+---
+
+**维护规则：**
+1. 每次遇到新的错误都记录到这里
+2. 提供详细的原因分析
+3. 给出具体的解决方案
+4. 总结预防措施
+5. 更新总错误数
+
+---
+
+**最后更新：** 2026-03-28 16:00  
+**维护人：** AI Assistant  
+**总错误数：** 16
+
+---
+
+## 错误 017: MainActivity 和 Service 编译错误
+
+**日期：** 2026-03-28  
+**严重程度：** 错误（阻塞构建）
+
+### 错误信息
+```
+MainActivity.kt:9:22 Unresolved reference: AppCompatActivity
+MainActivity.kt:20:5 'onCreate' overrides nothing
+MainActivity.kt:21:15 Unresolved reference: onCreate
+MainActivity.kt:31:5 'onDestroy' overrides nothing
+MainActivity.kt:32:15 Unresolved reference: onDestroy
+Service.kt:84:46 Unresolved reference: ic_menu_info (5个 Service 类)
+```
+
+### 原因分析
+1. **MainActivity.kt 缺少 import**：
+   - 继承了 `AppCompatActivity` 但没有导入 `androidx.appcompat.app.AppCompatActivity`
+   - 导致无法解析基类，onCreate/onDestroy 方法也无法识别
+
+2. **Service 类使用了不存在的资源**：
+   - `android.R.drawable.ic_menu_info` 在 Android 10 (API 29) 中不存在
+   - 该资源可能在更高版本的 Android 中才引入
+   - 导致编译器无法解析资源引用
+
+### 解决方案
+1. **添加缺失的 import**：
+```kotlin
+import androidx.appcompat.app.AppCompatActivity
+```
+
+2. **使用 Android 10 兼容的资源**：
+```kotlin
+// 修改前（不存在）
+.setSmallIcon(android.R.drawable.ic_menu_info.toInt())
+
+// 修改后（Android 10 兼容）
+.setSmallIcon(android.R.drawable.ic_dialog_info.toInt())
+```
+
+### 修改的文件
+- `device-module/app/src/main/java/com/wireless/control/device/MainActivity.kt` - 添加 import
+- `device-module/app/src/main/java/com/wireless/control/device/service/DeviceAccessibilityService.kt` - 替换资源
+- `device-module/app/src/main/java/com/wireless/control/device/service/DeviceControlService.kt` - 替换资源
+- `device-module/app/src/main/java/com/wireless/control/device/service/DeviceMonitorService.kt` - 替换资源
+- `device-module/app/src/main/java/com/wireless/control/device/service/HeartbeatService.kt` - 替换资源
+- `device-module/app/src/main/java/com/wireless/control/device/service/NotificationListenerService.kt` - 替换资源
+
+### 关键知识点
+1. **Android 资源兼容性**：
+   - 不同 Android 版本提供的系统资源不同
+   - 必须使用目标 API 级别支持的标准资源
+   - Android 10 (API 29) 支持的系统资源可以查官方文档
+
+2. **常用 Android 系统图标**（Android 10 兼容）：
+   - `android.R.drawable.ic_dialog_info` - 信息对话框图标
+   - `android.R.drawable.ic_dialog_alert` - 警告对话框图标
+   - `android.R.drawable.ic_menu_camera` - 相机图标
+   - `android.R.drawable.ic_menu_call` - 电话图标
+
+3. **Kotlin import 规则**：
+   - 继承类必须先导入才能使用
+   - 基类方法（如 onCreate）需要基类才能正确解析
+   - IDE 通常会自动提示缺失的 import
+
+### 预防措施
+1. **使用 IDE 自动导入**：让 IDE 自动添加缺失的 import
+2. **验证资源存在性**：使用 Android Studio 查看系统资源列表
+3. **参考官方文档**：Android Developers 文档列出了所有系统资源
+4. **测试最低版本**：确保使用的资源在最低 API 级别可用
+
+### 经验教训
+- 简化代码时要保留必要的 import
+- Android 系统资源不是所有版本都一样
+- 使用 GitHub Actions 时要确保所有修复都已推送
+- 本地构建成功不等于远程构建成功
+
+---
+
+**维护规则：**
+1. 每次遇到新的错误都记录到这里
+2. 提供详细的原因分析
+3. 给出具体的解决方案
+4. 总结预防措施
+5. 更新总错误数
+
+---
+
+**最后更新：** 2026-03-28 16:20  
+**维护人：** AI Assistant  
+**总错误数：** 17
