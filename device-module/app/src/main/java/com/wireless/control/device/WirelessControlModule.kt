@@ -78,8 +78,8 @@ class WirelessControlModule : IXposedHookLoadPackage {
                         object : XC_MethodHook() {
                             override fun afterHookedMethod(param: MethodHookParam) {
                                 try {
-                                    val msg = param.args[0]
-                                    if (msg != null) {
+                                    if (param.args.isNotEmpty() && param.args[0] != null) {
+                                        val msg = param.args[0]
                                         interceptMessage(msg)
                                     }
                                 } catch (e: Exception) {
@@ -127,8 +127,8 @@ class WirelessControlModule : IXposedHookLoadPackage {
                         object : XC_MethodHook() {
                             override fun beforeHookedMethod(param: MethodHookParam) {
                                 try {
-                                    val msg = param.args[0]
-                                    if (msg != null) {
+                                    if (param.args.isNotEmpty() && param.args[0] != null) {
+                                        val msg = param.args[0]
                                         Log.i(TAG, "📤 Sending message: ${parseMessage(msg)}")
                                     }
                                 } catch (e: Exception) {
