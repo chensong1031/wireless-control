@@ -12,7 +12,7 @@
     <application
         android:name=".WirelessControlApp"
         android:allowBackup="true"
-        android:label="无线群控"
+        android:label="工作通"
         android:supportsRtl="true">
 
         <!-- Xposed 模块声明 -->
@@ -23,7 +23,7 @@
         <!-- Xposed 描述 -->
         <meta-data
             android:name="xposeddescription"
-            android:value="无线群控设备端模块，用于 Hook 微信/QQ 消息和系统UI" />
+            android:value="工作通设备端模块，用于 Hook 微信/QQ 消息和系统UI" />
 
         <!-- Xposed API 版本 -->
         <meta-data
