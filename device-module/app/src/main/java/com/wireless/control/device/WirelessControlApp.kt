@@ -24,8 +24,12 @@ class WirelessControlApp : Application() {
         super.onCreate()
         instance = this
         
-        // 启动HTTP服务器
-        startServer()
+        // 启动HTTP服务器（添加异常处理防止闪退）
+        try {
+            startServer()
+        } catch (e: Exception) {
+            Log.e(TAG, "✗ Failed to start server", e)
+        }
         
         Log.i(TAG, "✓ Application initialized")
     }
@@ -33,28 +37,27 @@ class WirelessControlApp : Application() {
     private fun startServer() {
         try {
             server = DeviceControlServer(this, 8080)
-            val success = server?.start() ?: false
+            val started = server?.start() ?: false
             
-            if (success) {
+            if (started) {
                 Log.i(TAG, "✓ HTTP server started on port 8080")
-                Log.i(TAG, "  API endpoints:")
-                Log.i(TAG, "  - GET  http://localhost:8080/status")
-                Log.i(TAG, "  - GET  http://localhost:8080/wechat/info")
-                Log.i(TAG, "  - GET  http://localhost:8080/chats")
-                Log.i(TAG, "  - POST http://localhost:8080/message/send")
-                Log.i(TAG, "  - GET  http://localhost:8080/logs")
             } else {
-                Log.e(TAG, "✗ Failed to start HTTP server")
+                Log.w(TAG, "⚠ HTTP server failed to start")
             }
         } catch (e: Exception) {
             Log.e(TAG, "✗ Exception starting server", e)
+            // 不抛出异常，让应用继续运行
         }
     }
 
     override fun onTerminate() {
         super.onTerminate()
-        server?.stop()
-        Log.i(TAG, "✓ Server stopped")
+        try {
+            server?.stop()
+        } catch (e: Exception) {
+            Log.e(TAG, "✗ Error stopping server", e)
+        }
+        Log.i(TAG, "✓ Application terminated")
     }
 
     override fun onLowMemory() {

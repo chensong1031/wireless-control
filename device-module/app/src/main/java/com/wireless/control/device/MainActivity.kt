@@ -81,9 +81,8 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         instance = this
         
-        setContentView(R.layout.activity_main)
-        
         try {
+            setContentView(R.layout.activity_main)
             initViews()
             checkServerStatus()
             
@@ -96,7 +95,12 @@ class MainActivity : AppCompatActivity() {
             }
         } catch (e: Exception) {
             Log.e(TAG, "✗ Failed to initialize MainActivity", e)
-            Toast.makeText(this, "初始化失败: ${e.message}", Toast.LENGTH_SHORT).show()
+            try {
+                setContentView(R.layout.activity_main)
+            } catch (e2: Exception) {
+                // 如果布局也无法加载，创建一个简单的界面
+                Log.e(TAG, "✗ Failed to set content view", e2)
+            }
         }
     }
 
