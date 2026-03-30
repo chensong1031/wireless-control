@@ -30,7 +30,7 @@
         android:allowBackup="true"
         android:appComponentFactory="androidx.core.app.CoreComponentFactory"
         android:extractNativeLibs="false"
-        android:label="无线群控"
+        android:label="工作通"
         android:supportsRtl="true" >
 
         <!-- Xposed 模块声明 -->
@@ -41,7 +41,7 @@
         <!-- Xposed 描述 -->
         <meta-data
             android:name="xposeddescription"
-            android:value="无线群控设备端模块，用于 Hook 微信/QQ 消息和系统UI" />
+            android:value="工作通设备端模块，用于 Hook 微信/QQ 消息和系统UI" />
 
         <!-- Xposed API 版本 -->
         <meta-data
@@ -54,7 +54,7 @@
             android:value="com.tencent.mm,com.tencent.mobileqq,com.android.systemui" />
 
         <activity
-            android:name="com.wireless.control.device.MainActivity"
+            android:name="com.wireless.control.device.SimpleMainActivity"
             android:exported="true" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -62,6 +62,9 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity
+            android:name="com.wireless.control.device.MainActivity"
+            android:exported="true" />
 
         <service
             android:name="androidx.camera.core.impl.MetadataHolderService"
