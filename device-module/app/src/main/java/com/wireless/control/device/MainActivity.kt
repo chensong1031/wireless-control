@@ -13,9 +13,12 @@ import androidx.camera.core.*
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.core.content.ContextCompat
-import com.google.mlkit.vision.barcode.BarcodeScanner
-import com.google.mlkit.vision.barcode.BarcodeScanning
-import com.google.mlkit.vision.common.InputImage
+import com.google.zxing.BarcodeFormat
+import com.google.zxing.BinaryBitmap
+import com.google.zxing.DecodeHintType
+import com.google.zxing.MultiFormatReader
+import com.google.zxing.RGBLuminanceSource
+import com.google.zxing.common.HybridBinarizer
 import kotlinx.coroutines.*
 import org.json.JSONObject
 import java.util.concurrent.ExecutorService
@@ -51,6 +54,7 @@ class MainActivity : AppCompatActivity() {
     
     private var currentMode = SCAN_MODE
     private var cameraProvider: ProcessCameraProvider? = null
+    private var isScanning = false
     
     private val cameraPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -139,6 +143,7 @@ class MainActivity : AppCompatActivity() {
     private fun startScanQRCode() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) 
             == PackageManager.PERMISSION_GRANTED) {
+            isScanning = true
             startCamera()
         } else {
             cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
@@ -181,30 +186,47 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun processImageProxy(imageProxy: ImageProxy) {
-        val mediaImage = imageProxy.image
-        if (mediaImage != null) {
-            val image = InputImage.fromMediaImage(mediaImage, imageProxy.imageInfo.rotationDegrees)
-            
-            val scanner = BarcodeScanning.getClient()
-            scanner.process(image)
-                .addOnSuccessListener { barcodes ->
-                    for (barcode in barcodes) {
-                        val qrData = barcode.rawValue
-                        if (qrData != null && qrData.contains("|")) {
-                            Log.i(TAG, "Scanned QR code: $qrData")
-                            handleQRCodeData(qrData)
-                            imageProxy.close()
-                            return@addOnSuccessListener
-                        }
+        try {
+            val mediaImage = imageProxy.image
+            if (mediaImage != null && isScanning) {
+                // 将 YUV 转换为 Bitmap
+                val buffer = mediaImage.planes[0].buffer
+                val data = ByteArray(buffer.remaining())
+                buffer.get(data)
+                
+                val width = mediaImage.width
+                val height = mediaImage.height
+                
+                // 创建 RGBLuminanceSource
+                val rgbLuminanceSource = RGBLuminanceSource(width, height, data)
+                
+                // 创建 BinaryBitmap
+                val binaryBitmap = BinaryBitmap(HybridBinarizer(rgbLuminanceSource))
+                
+                // 创建 MultiFormatReader
+                val reader = MultiFormatReader()
+                val hints = mapOf(
+                    DecodeHintType.POSSIBLE_FORMATS to listOf(BarcodeFormat.QR_CODE),
+                    DecodeHintType.TRY_HARDER to true
+                )
+                reader.setHints(hints)
+                
+                try {
+                    val result = reader.decode(binaryBitmap)
+                    val qrData = result.text
+                    
+                    if (qrData != null && qrData.contains("|")) {
+                        Log.i(TAG, "Scanned QR code: $qrData")
+                        handleQRCodeData(qrData)
+                        isScanning = false
                     }
+                } catch (e: Exception) {
+                    // 没有找到二维码，继续扫描
                 }
-                .addOnFailureListener { e ->
-                    Log.e(TAG, "Barcode scan failed", e)
-                }
-                .addOnCompleteListener {
-                    imageProxy.close()
-                }
-        } else {
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to process image", e)
+        } finally {
             imageProxy.close()
         }
     }
@@ -235,6 +257,7 @@ class MainActivity : AppCompatActivity() {
             runOnUiThread {
                 Toast.makeText(this, "二维码格式错误", Toast.LENGTH_SHORT).show()
                 statusTextView.text = "扫码失败，请重试"
+                isScanning = true
             }
         }
     }
@@ -279,6 +302,7 @@ class MainActivity : AppCompatActivity() {
             runOnUiThread {
                 Toast.makeText(this, "注册失败: ${e.message}", Toast.LENGTH_SHORT).show()
                 statusTextView.text = "注册失败，请重试"
+                isScanning = true
                 switchToScanMode()
             }
         }
@@ -356,6 +380,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun stopCamera() {
         try {
+            isScanning = false
             cameraProvider?.unbindAll()
         } catch (e: Exception) {
             Log.e(TAG, "Failed to stop camera", e)
