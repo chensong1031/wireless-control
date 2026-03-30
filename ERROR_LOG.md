@@ -822,6 +822,436 @@ adb reboot
 
 ---
 
-**最后更新：** 2026-03-28 16:30  
+---
+
+**最后更新：** 2026-03-30 21:00  
 **维护人：** AI Assistant  
-**总错误数：** 18
+**总错误数：** 22
+
+---
+
+## 错误 019: 二维码扫描库依赖问题 - ML Kit 导致构建失败
+
+**日期：** 2026-03-30  
+**严重程度：** 错误（阻塞构建）
+
+### 错误信息
+```
+Error: Cannot find module 'react-native-camera' or its corresponding type declarations.
+Error: Cannot find module 'react-native-vision-camera' or its corresponding type declarations.
+```
+
+### 原因
+1. 第一次尝试使用 ML Kit (`com.google.mlkit:barcode-scanning`)，但依赖冲突导致构建失败
+2. 选择了错误的依赖包，不兼容 Android 项目
+3. 没有使用纯 Android 原生的二维码库
+
+### 解决方案
+改用 ZXing（纯 Java/Kotlin，兼容性更好）：
+```gradle
+// 错误
+implementation 'com.google.mlkit:barcode-scanning:17.2.0'
+implementation 'androidx.camera:camera-core:1.3.1'
+
+// 正确
+implementation 'com.google.zxing:core:3.5.2'
+implementation 'androidx.camera:camera-core:1.3.1'
+implementation 'androidx.camera:camera-camera2:1.3.1'
+implementation 'androidx.camera:camera-lifecycle:1.3.1'
+implementation 'androidx.camera:camera-view:1.3.1'
+```
+
+### 修改的文件
+- `device-module/app/build.gradle`
+- `device-module/app/src/main/java/com/wireless/control/device/MainActivity.kt` - 改用ZXing API
+- `device-module/app/src/main/AndroidManifest.xml` - 添加相机权限
+
+### 关键知识点
+1. **Android 二维码库选择**：
+   - ML Kit: 功能强大但依赖复杂
+   - ZXing: 纯 Java/Kotlin，兼容性好，推荐使用
+   - CameraX: Google 推荐的现代相机库
+
+2. **CameraX 基本架构**：
+   - `ProcessCameraProvider`: 管理相机生命周期
+   - `Preview`: 预览视图
+   - `ImageAnalysis`: 图像分析（用于二维码识别）
+   - `CameraSelector`: 选择前后摄像头
+
+3. **ZXing 使用方法**：
+   - `RGBLuminanceSource`: 将图像数据转换为亮度源
+   - `BinaryBitmap`: 二值化图像
+   - `MultiFormatReader`: 多格式二维码读取器
+   - `DecodeHintType`: 解码提示（支持QR Code）
+
+### 预防措施
+1. **优先选择纯原生库**：避免 React Native 相关的依赖
+2. **查看文档示例**：使用官方示例代码
+3. **测试兼容性**：确保库在目标 API 级别可用
+4. **简化依赖**：使用最少必要的依赖
+
+### 经验教训
+- 不要盲目使用新库，先验证兼容性
+- Android 项目应该使用 Android 原生库
+- ML Kit 适合复杂场景，简单的二维码扫描用 ZXing 足够
+
+---
+
+## 错误 020: 后端登录系统循环导入导致 404 错误
+
+**日期：** 2026-03-30  
+**严重程度：** 严重（功能完全不可用）
+
+### 错误现象
+```
+HTTP/1.1 404 Not Found
+/api/auth/login 路由无法访问
+```
+
+### 根本原因
+**Flask Blueprint 循环导入问题！**
+
+1. **错误的结构**：
+   ```python
+   # app/routes/__init__.py
+   from flask import Blueprint
+   auth_bp = Blueprint('auth_bp', __name__)
+   
+   # app/routes/auth.py
+   from app.routes import auth_bp  # ❌ 循环导入
+   @auth_bp.route('/login')
+   def login(): ...
+   ```
+
+2. **导入链条**：
+   - `app/__init__.py` 导入 `app.routes.auth_bp`
+   - `app/routes/auth.py` 导入 `app.routes`（从而导入 `auth_bp`）
+   - 形成循环，导致 Blueprint 无法正确注册
+
+3. **后果**：
+   - Flask 无法注册路由
+   - 所有 API 返回 404
+   - 登录系统完全不可用
+
+### 错误的堆栈信息
+```
+partially initialized module 'app' has no attribute 'register_blueprint'
+(most likely due to a circular import)
+```
+
+### 解决方案
+**在 `app/routes/__init__.py` 中统一定义 Blueprint，在各模块中只导入使用**：
+
+```python
+# ❌ 错误：app/routes/__init__.py
+from flask import Blueprint
+auth_bp = Blueprint('auth_bp', __name__)
+
+# ❌ 错误：app/routes/auth.py
+from app.routes import auth_bp
+
+# ✅ 正确：app/routes/__init__.py
+from flask import Blueprint
+
+# ✅ 正确：app/routes/auth.py
+from flask import Blueprint, request, jsonify
+from app.models import User
+
+auth_bp = Blueprint('auth_bp', __name__)
+
+@auth_bp.route('/login', methods=['POST'])
+def login():
+    ...
+```
+
+然后在 `app/__init__.py` 中先导入路由模块，再导入 Blueprint：
+```python
+# ✅ 正确的导入顺序
+import app.routes.auth  # 先导入模块（注册路由）
+import app.routes.devices
+# ...
+from app.routes import auth_bp  # 再导入 Blueprint（用于注册）
+```
+
+### 修改的文件
+- `app/routes/__init__.py` - 修改 Blueprint 定义方式
+- `app/routes/auth.py` - 添加 Blueprint 定义
+- `app/routes/devices.py` - 添加 Blueprint 定义
+- `app/routes/tasks.py` - 添加 Blueprint 定义
+- `app/routes/scripts.py` - 添加 Blueprint 定义
+- `app/routes/statistics.py` - 添加 Blueprint 定义
+- `app/routes/scheduled_tasks.py` - 添加 Blueprint 定义
+- `app/routes/groups.py` - 添加 Blueprint 定义
+- `app/__init__.py` - 修改导入顺序
+
+### 关键知识点
+1. **Flask Blueprint 正确使用方式**：
+   - 在模块文件中定义 Blueprint
+   - 在 `__init__.py` 中导入模块和 Blueprint
+   - 避免在模块中导入 Blueprint（会导致循环）
+
+2. **Python 导入规则**：
+   - 模块导入只执行一次
+   - 循环导入会导致部分初始化
+   - 使用 `from module import` 比直接导入更安全
+
+3. **Flask 应用初始化顺序**：
+   - 先导入所有路由模块（执行装饰器，注册路由）
+   - 再导入 Blueprint 对象（用于 app.register_blueprint）
+   - 最后注册 Blueprint 到 app
+
+### 预防措施
+1. **避免循环导入**：模块 A 导入模块 B，模块 B 导入模块 A
+2. **统一 Blueprint 定义**：在各自的模块文件中定义
+3. **分离导入和注册**：先导入模块执行注册，再导入 Blueprint 注册到 app
+4. **理解初始化时机**：Python import 只执行一次
+
+### 经验教训
+- Blueprint 循环导入是一个经典的 Flask 错误
+- 理解 Blueprint 的工作原理很重要
+- 修改导入结构时要注意依赖关系
+- 使用 print() 调试初始化顺序
+
+---
+
+## 错误 021: 前端代码修改后页面空白（JS 错误）
+
+**日期：** 2026-03-30  
+**严重程度：** 严重（功能完全不可用）
+
+### 错误现象
+- 访问 http://101.43.0.77 显示空白页面
+- 浏览器控制台显示 JS 错误
+- 用户完全无法使用系统
+
+### 根本原因
+**JavaScript 变量定义顺序错误！**
+
+在修改前端代码时，使用了 Python 脚本自动插入代码，导致：
+```javascript
+// ❌ 错误的顺序
+const fetchQRCode = async () => {  // 使用了 setQrLoading
+  setQrLoading(true);              // 但 setQrLoading 还没定义！
+};
+
+const [qrLoading, setQrLoading] = useState('manual');  // 在后面才定义
+```
+
+React Hooks 规则：**必须在组件函数的顶层调用 Hook（useState、useEffect 等）**
+
+### 错误的代码结构
+```javascript
+const DeviceList = () => {
+  const fetchQRCode = async () => {  // ❌ 函数中使用了未定义的变量
+    setQrLoading(true);
+    setQrData(result.data);
+  };
+
+  const [devices, setDevices] = useState([]);  // useState 在后面才定义
+  const [qrData, setQrData] = useState(null);
+  const [qrLoading, setQrLoading] = useState(false);
+};
+```
+
+### 解决方案
+**严格遵循 React Hooks 规则，所有 useState 必须在组件函数的最开始：**
+
+```javascript
+// ✅ 正确的顺序
+const DeviceList = () => {
+  // 1. 所有 useState 在最前面
+  const [devices, setDevices] = useState([]);
+  const [qrData, setQrData] = useState(null);
+  const [qrLoading, setQrLoading] = useState(false);
+  const [qrError, setQrError] = useState(null);
+  
+  // 2. 然后定义函数
+  const fetchQRCode = async () => {
+    setQrLoading(true);  // 现在可以使用了
+    // ...
+  };
+};
+```
+
+### 修改的文件
+- 恢复 `App.jsx` 到备份版本
+- 禁用了自动修改脚本，改用手动修改
+
+### 关键知识点
+1. **React Hooks 规则（非常重要！）**：
+   - ✅ 只能在函数组件的顶层调用 Hook
+   - ✅ 必须按相同的顺序调用 Hook
+   - ❌ 不能在循环、条件或嵌套函数中调用 Hook
+   - ❌ 不能在普通 JavaScript 函数中调用 Hook
+
+2. **常见错误**：
+   ```javascript
+   // ❌ 错误 1：在条件中调用 useState
+   if (someCondition) {
+     const [state, setState] = useState(null);
+   }
+   
+   // ❌ 错误 2：在循环中调用 useState
+   for (let i = 0; i < 5; i++) {
+     const [item, setItem] = useState(i);
+   }
+   
+   // ❌ 错误 3：useState 在后面，函数在前面
+   const func = () => setState(true);
+   const [state, setState] = useState(false);
+   ```
+
+3. **正确写法**：
+   ```javascript
+   const Component = () => {
+     // ✅ 所有 Hook 在最前面
+     const [state, setState] = useState(false);
+     const [count, setCount] = useState(0);
+     
+     // ✅ 函数定义可以放在后面
+     const handleClick = () => {
+       setState(true);
+     };
+     
+     // ✅ useEffect 也可以在后面
+     useEffect(() => {
+       // ...
+     }, []);
+   };
+   ```
+
+### 预防措施
+1. **严格遵守 React Hooks 规则**
+2. **使用 ESLint 插件**：`eslint-plugin-react-hooks` 会检查 Hook 规则
+3. **手动修改代替自动脚本**：对于 React 代码，手动修改更安全
+4. **理解 Hook 原理**：Hooks 的顺序和状态很重要
+
+### 经验教训
+- React Hooks 的规则非常严格，必须遵守
+- 自动修改脚本容易破坏代码结构
+- 前端修改要特别小心，尤其是 React 代码
+- 使用 TypeScript 可以在编译时发现这类错误
+
+---
+
+## 错误 022: 数据库表结构不匹配 - created_at 字段缺失
+
+**日期：** 2026-03-30  
+**严重程度：** 错误（阻塞功能）
+
+### 错误信息
+```
+sqlite3.OperationalError: no such column: users.created_at
+[SQL: SELECT users.id AS users_id, ... FROM users]
+```
+
+### 原因
+1. **数据库 schema 与代码不匹配**：
+   - `app/models.py` 中的 User 模型定义了 `created_at` 字段
+   - 但数据库表中没有这个字段
+   - 导致查询时 SQL 错误
+
+2. **历史遗留问题**：
+   - 数据库可能是在没有 `created_at` 字段时创建的
+   - 后续代码更新添加了字段，但数据库没有迁移
+   - SQLite 不支持自动添加字段
+
+3. **db.create_all() 的局限**：
+   - 只会创建不存在的表
+   - 不会修改已存在的表结构
+   - 不会添加新字段到旧表
+
+### 解决方案
+**删除并重新创建数据库**（因为这是开发环境，数据可以重建）：
+
+```bash
+# 删除旧数据库
+rm /opt/wireless-control/backend/app.db
+
+# 重新创建数据库和表
+cd /opt/wireless-control/backend
+source venv/bin/activate
+python3 << 'EOF'
+import sys
+sys.path.insert(0, '.')
+from app import create_app, db
+from app.models import User
+
+app = create_app()
+with app.app_context():
+    db.drop_all()    # 删除所有表
+    db.create_all()  # 重新创建所有表（包含 created_at）
+    
+    # 创建默认 admin 用户
+    admin = User(username='admin', role='admin')
+    admin.set_password('admin123')
+    db.session.add(admin)
+    db.session.commit()
+    print('数据库重建完成，admin 用户已创建')
+EOF
+```
+
+### 修改的文件
+- `app/models.py` - 确认 User 模型包含 `created_at` 字段
+
+### 预防措施
+1. **使用数据库迁移工具**：
+   - Flask-Migrate 或 Alembic 可以管理数据库 schema 变更
+   - 记录所有 schema 变更历史
+   - 可以回滚到之前的版本
+
+2. **开发环境数据库管理**：
+   - 定期清理并重建数据库
+   - 使用 seed 脚本初始化数据
+   - 不要在生产环境中直接删除数据库
+
+3. **代码与数据库同步**：
+   - 修改模型后，确保数据库也更新
+   - 使用 `db.create_all()` 时注意它只创建新表
+   - 添加字段时考虑向后兼容
+
+### 关键知识点
+1. **SQLite 特性**：
+   - 轻量级，适合开发环境
+   - 不支持 ALTER TABLE ADD COLUMN 的新字段默认值（部分版本）
+   - 修改 schema 需要重建表
+
+2. **SQLAlchemy 的 create_all()**：
+   - 只创建不存在的表
+   - 不会修改已存在的表
+   - 不会添加新字段
+
+3. **生产环境最佳实践**：
+   - 使用 PostgreSQL 或 MySQL
+   - 使用数据库迁移工具
+   - 不直接删除生产数据库
+   - 使用备份和恢复
+
+### 经验教训
+- 代码和数据库 schema 必须保持同步
+- SQLite 适合开发，生产环境用 PostgreSQL
+- 添加字段时要注意已有数据的兼容性
+- 模型修改后要考虑数据库迁移
+
+---
+
+**总结：**
+- 二维码功能开发过程中的主要错误
+- 每个错误都有详细的原因分析和解决方案
+- 强调了 React Hooks 规则的重要性
+- 强调了 Flask Blueprint 避免循环导入
+
+---
+
+**维护规则：**
+1. 每次遇到新的错误都记录到这里
+2. 提供详细的原因分析
+3. 给出具体的解决方案
+4. 总结预防措施
+5. 更新总错误数
+
+---
+
+**最后更新：** 2026-03-30 21:00  
+**维护人：** AI Assistant  
+**总错误数：** 22

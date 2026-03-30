@@ -57,6 +57,22 @@ def create_app():
         auth_bp, device_bp, task_bp, script_bp,
         statistics_bp, scheduled_task_bp, group_bp
     )
+    
+    # 设备消息通知回调列表
+    _device_message_callbacks = []
+    
+    # 导入设备连接模块（在路由之后）
+    import sys
+    sys.path.insert(0, '/opt/wireless-control/backend')
+    from device_connection import device_conn_bp
+
+    def notify_device_message(data):
+        """通知所有注册的回调函数（设备消息）"""
+        for callback in _device_message_callbacks:
+            try:
+                callback(data)
+            except Exception as e:
+                logger.error(f"设备消息通知失败: {e}")
 
     # 注册蓝图
     app.register_blueprint(auth_bp, url_prefix='/api/auth')
@@ -66,6 +82,11 @@ def create_app():
     app.register_blueprint(statistics_bp, url_prefix='/api/statistics')
     app.register_blueprint(scheduled_task_bp, url_prefix='/api/scheduled-tasks')
     app.register_blueprint(group_bp, url_prefix='/api/groups')
+    app.register_blueprint(device_conn_bp, url_prefix='/api/device-conn')
+
+    # 注册设备消息回调
+    app.notify_device_message = notify_device_message
+    app.register_device_message_callback = lambda cb: _device_message_callbacks.append(cb)
 
     @app.route('/')
     def index():

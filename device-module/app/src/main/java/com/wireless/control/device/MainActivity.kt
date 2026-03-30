@@ -20,7 +20,11 @@ import com.google.zxing.MultiFormatReader
 import com.google.zxing.RGBLuminanceSource
 import com.google.zxing.common.HybridBinarizer
 import kotlinx.coroutines.*
+import okhttp3.*
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONObject
+import java.io.IOException
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
@@ -51,6 +55,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var actionButton: Button
     private lateinit var previewView: PreviewView
     private lateinit var cameraExecutor: ExecutorService
+    
+    private val httpClient = OkHttpClient()
     
     private var currentMode = SCAN_MODE
     private var cameraProvider: ProcessCameraProvider? = null
@@ -278,7 +284,7 @@ class MainActivity : AppCompatActivity() {
                 put("device_info", deviceInfo)
             }
             
-            val response = HttpClient.post("$serverUrl/api/device-conn/register", payload.toString())
+            val response = httpPost("$serverUrl/api/device-conn/register", payload.toString())
             val result = JSONObject(response)
             
             if (result.getInt("code") == 200) {
@@ -327,7 +333,7 @@ class MainActivity : AppCompatActivity() {
             put("token", deviceToken)
         }
         
-        val response = HttpClient.post("$serverUrl/api/device-conn/heartbeat", payload.toString())
+        val response = httpPost("$serverUrl/api/device-conn/heartbeat", payload.toString())
         Log.d(TAG, "Heartbeat response: $response")
     }
 
@@ -338,7 +344,7 @@ class MainActivity : AppCompatActivity() {
                     put("device_id", deviceId)
                     put("token", deviceToken)
                 }
-                HttpClient.post("$serverUrl/api/device-conn/disconnect", payload.toString())
+                httpPost("$serverUrl/api/device-conn/disconnect", payload.toString())
             } catch (e: Exception) {
                 Log.e(TAG, "Disconnect failed", e)
             }
@@ -407,7 +413,7 @@ class MainActivity : AppCompatActivity() {
                     put("content", message)
                 }
                 
-                HttpClient.post("$serverUrl/api/device-conn/message", payload.toString())
+                httpPost("$serverUrl/api/device-conn/message", payload.toString())
                 Log.d(TAG, "WeChat message reported")
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to report message", e)
@@ -428,11 +434,27 @@ class MainActivity : AppCompatActivity() {
                     put("content", message)
                 }
                 
-                HttpClient.post("$serverUrl/api/device-conn/message", payload.toString())
+                httpClient.post("$serverUrl/api/device-conn/message", payload.toString())
                 Log.d(TAG, "QQ message reported")
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to report message", e)
             }
         }
+    }
+
+    /**
+     * HTTP POST 请求辅助函数
+     */
+    private fun httpPost(url: String, jsonBody: String): String {
+        val mediaType = "application/json; charset=utf-8".toMediaType()
+        val requestBody = jsonBody.toRequestBody(mediaType)
+        
+        val request = Request.Builder()
+            .url(url)
+            .post(requestBody)
+            .build()
+        
+        val response = httpClient.newCall(request).execute()
+        return response.body?.string() ?: throw Exception("Empty response")
     }
 }
