@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>设备注册二维码 - 无线群控系统</title>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://unpkg.com/antd@5/dist/antd.min.js"></script>
+    <script src="https://unpkg.com/@ant-design/icons@5/dist/antd-icons.min.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/antd@5/dist/reset.min.css">
+    <style>
+        body { margin: 0; padding: 20px; background: #f0f2f5; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; }
+        .container { max-width: 600px; margin: 0 auto; }
+        .qr-card { text-align: center; padding: 24px; }
+        .qr-image { max-width: 280px; margin: 20px auto; display: block; }
+        .info { margin-top: 16px; color: #666; font-size: 14px; }
+        .device-list { margin-top: 24px; }
+        .info-box { margin-top: 16px; padding: 12px; background: #f6f8fa; border-radius: 6px; }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { Card, Spin, Alert, Button, Space, Typography, List, Tag, message } = antd;
+        const { Title, Text, Paragraph } = Typography;
+        const { QrcodeOutlined, ReloadOutlined, CheckCircleOutlined, MobileOutlined, CopyOutlined } = icons;
+
+        const API_BASE = 'http://101.43.0.77:5000/api';
+
+        function QRCodeApp() {
+            const [qrData, setQrData] = React.useState(null);
+            const [loading, setLoading] = React.useState(true);
+            const [error, setError] = React.useState(null);
+            const [registeredDevices, setRegisteredDevices] = React.useState([]);
+
+            const fetchQRCode = async () => {
+                setLoading(true);
+                setError(null);
+                try {
+                    const response = await fetch(`${API_BASE}/device-conn/qrcode`);
+                    const result = await response.json();
+                    if (result.code === 200) {
+                        setQrData(result.data);
+                    } else {
+                        setError(result.message || '生成二维码失败');
+                    }
+                } catch (err) {
+                    setError('网络错误: ' + err.message);
+                } finally {
+                    setLoading(false);
+                }
+            };
+
+            const fetchDevices = async () => {
+                try {
+                    const response = await fetch(`${API_BASE}/devices/`);
+                    const result = await response.json();
+                    if (result.code === 200) {
+                        setRegisteredDevices(result.data || []);
+                    }
+                } catch (err) {
+                    console.error('获取设备列表失败:', err);
+                }
+            };
+
+            React.useEffect(() => {
+                fetchQRCode();
+                fetchDevices();
+                const interval = setInterval(fetchQRCode, 30000);
+                const deviceInterval = setInterval(fetchDevices, 5000);
+                return () => {
+                    clearInterval(interval);
+                    clearInterval(deviceInterval);
+                };
+            }, []);
+
+            const copyToClipboard = () => {
+                if (qrData?.qr_data) {
+                    navigator.clipboard.writeText(qrData.qr_data);
+                    message.success('已复制到剪贴板!');
+                }
+            };
+
+            return (
+                <div className="container">
+                    <Title level={2} style={{textAlign: 'center', marginBottom: 24}}>
+                        <QrcodeOutlined /> 设备注册二维码
+                    </Title>
+                    
+                    <Card className="qr-card" style={{marginBottom: 16}}>
+                        <Text type="secondary">手机扫描二维码完成设备注册</Text>
+                    </Card>
+
+                    {loading && (
+                        <Card className="qr-card">
+                            <Spin size="large" />
+                            <div style={{marginTop: 16}}>正在生成二维码...</div>
+                        </Card>
+                    )}
+
+                    {error && (
+                        <Alert
+                            type="error"
+                            message="错误"
+                            description={error}
+                            style={{marginBottom: 24}}
+                            action={
+                                <Button size="small" onClick={fetchQRCode}>重试</Button>
+                            }
+                        />
+                    )}
+
+                    {qrData && !loading && (
+                        <>
+                            <Card className="qr-card">
+                                {qrData.qr_image ? (
+                                    <img src={qrData.qr_image} alt="QR Code" className="qr-image" />
+                                ) : (
+                                    <div style={{padding: 48, background: '#f5f5f5'}}>
+                                        <Text type="secondary">无法显示二维码</Text>
+                                    </div>
+                                )}
+                                
+                                <div style={{marginTop: 16}}>
+                                    <Text copyable>{qrData.qr_data}</Text>
+                                </div>
+                                
+                                <div className="info-box">
+                                    <div>服务器: {qrData.server_url}</div>
+                                    <div>有效期至: {new Date(qrData.expire_at * 1000).toLocaleString()}</div>
+                                </div>
+
+                                <Space style={{marginTop: 24}}>
+                                    <Button type="primary" icon={<ReloadOutlined />} onClick={fetchQRCode}>
+                                        刷新二维码
+                                    </Button>
+                                    <Button icon={<CopyOutlined />} onClick={copyToClipboard}>
+                                        复制信息
+                                    </Button>
+                                </Space>
+                            </Card>
+
+                            <Card 
+                                className="device-list"
+                                title={<><CheckCircleOutlined /> 已注册设备 ({registeredDevices.length})</>}
+                            >
+                                {registeredDevices.length === 0 ? (
+                                    <Text type="secondary">暂无已注册设备，扫描二维码完成注册</Text>
+                                ) : (
+                                    <List
+                                        dataSource={registeredDevices}
+                                        renderItem={device => (
+                                            <List.Item>
+                                                <List.Item.Meta
+                                                    avatar={<MobileOutlined style={{fontSize: 24, color: '#1890ff'}} />}
+                                                    title={device.name}
+                                                    description={device.description}
+                                                />
+                                                <Tag color={device.status === 'online' ? 'green' : 'default'}>
+                                                    {device.status === 'online' ? '在线' : '离线'}
+                                                </Tag>
+                                            </List.Item>
+                                        )}
+                                    />
+                                )}
+                            </Card>
+
+                            <Alert
+                                type="info"
+                                message="使用方法"
+                                description={
+                                    <ol style={{margin: 0, paddingLeft: 20}}>
+                                        <li>打开手机上的无线群控模块</li>
+                                        <li>点击"扫描二维码"按钮</li>
+                                        <li>扫描屏幕上的二维码</li>
+                                        <li>等待设备自动注册</li>
+                                        <li>注册成功后，设备将显示在上方的设备列表中</li>
+                                    </ol>
+                                }
+                                style={{marginTop: 24}}
+                            />
+                        </>
+                    )}
+                </div>
+            );
+        }
+
+        ReactDOM.createRoot(document.getElementById('root')).render(<QRCodeApp />);
+    </script>
+</body>
+</html>

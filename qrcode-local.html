@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>设备注册二维码 - 无线群控系统</title>
+    <style>
+        body { margin: 0; padding: 20px; background: #f0f2f5; font-family: Arial, sans-serif; }
+        .container { max-width: 600px; margin: 0 auto; }
+        .qr-card { text-align: center; padding: 24px; }
+        .info-box { margin-top: 16px; padding: 12px; background: #f6f8fa; border-radius: 6px; font-size: 14px; color: #666; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📱 设备注册二维码</h1>
+        
+        <div class="qr-card">
+            <p>如果看到这里，说明页面正常加载</p>
+            <div id="status">检测状态中...</div>
+            <div id="qr-container"></div>
+            <div id="error-msg" style="color: red; margin-top: 16px;"></div>
+        </div>
+        
+        <div class="info-box">
+            <strong>手动测试：</strong>
+            <p id="manual-test" style="margin-top: 8px; margin: 0;">等待...</p>
+        </div>
+    </div>
+
+    <!-- 使用本地文件，避免CDN问题 -->
+    <script src="js/react-dom.development.js"></script>
+    <script src="js/react.development.js"></script>
+    
+    <script src="js/ReactDOM.development.js"></script>
+    <script src="js/babel.min.js"></script>
+    
+    <script src="js/antd.min.js"></script>
+    <script src="js/icons.min.js"></script>
+
+    <script src="app.js"></script>
+
+    <script>
+        const status = document.getElementById('status');
+        const manualTest = document.getElementById('manual-test');
+        const qrContainer = document.getElementById('qr-container');
+        const errorMsg = document.getElementById('error-msg');
+        
+        // 手动测试 - 直接显示一个SVG二维码
+        manualTest.innerHTML = `
+            <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100">
+                <rect x="0" y="0" width="100" height="100" fill="white"/>
+                <rect x="10" y="10" width="80" height="80" fill="black"/>
+            </svg>
+            <p style="text-align: center; margin-top: 20px; font-size: 12px;">如果看到上面的黑色方块，说明 SVG可以显示</p>
+        `;
+        
+        status.innerHTML = '页面加载完成';
+    </script>
+</body>
+</html>

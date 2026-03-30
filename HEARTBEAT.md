@@ -1,5 +1,15 @@
 # HEARTBEAT.md
 
-# Keep this file empty (or with only comments) to skip heartbeat API calls.
+# 定期任务 - 每30分钟检查一次
 
-# Add tasks below when you want the agent to check something periodically.
+## 任务列表
+
+1. 检查是否有重要的工作进度需要记录到 MEMORY.md
+2. 如果完成了重要任务，更新 MEMORY.md 中的进度状态
+3. 检查 memory/ 目录中的每日记录是否需要整理
+
+## 记忆更新规则
+
+- 完成重要功能后，更新 MEMORY.md
+- 遇到重要错误及解决方案，添加到 MEMORY.md
+- 项目状态变化时，更新进度表

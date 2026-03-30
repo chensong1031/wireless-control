@@ -48,6 +48,11 @@ class MainActivity : AppCompatActivity() {
         fun getServerUrl(): String? = serverUrl
         fun getDeviceToken(): String? = deviceToken
         fun getDeviceId(): Int? = deviceId
+        
+        internal fun setDeviceId(id: Int?) { deviceId = id }
+        internal fun setDeviceToken(token: String?) { deviceToken = token }
+        internal fun setServerUrl(url: String?) { serverUrl = url }
+        internal fun setInstance(inst: MainActivity?) { instance = inst }
     }
 
     private lateinit var modeTextView: TextView
@@ -195,16 +200,22 @@ class MainActivity : AppCompatActivity() {
         try {
             val mediaImage = imageProxy.image
             if (mediaImage != null && isScanning) {
-                // 将 YUV 转换为 Bitmap
+                // 将 YUV 转换为灰度 IntArray
                 val buffer = mediaImage.planes[0].buffer
-                val data = ByteArray(buffer.remaining())
-                buffer.get(data)
+                val yData = ByteArray(buffer.remaining())
+                buffer.get(yData)
                 
                 val width = mediaImage.width
                 val height = mediaImage.height
                 
+                // YUV 转 IntArray 灰度
+                val luminances = IntArray(width * height)
+                for (i in yData.indices) {
+                    luminances[i] = yData[i].toInt() and 0xFF
+                }
+                
                 // 创建 RGBLuminanceSource
-                val rgbLuminanceSource = RGBLuminanceSource(width, height, data)
+                val rgbLuminanceSource = RGBLuminanceSource(width, height, luminances)
                 
                 // 创建 BinaryBitmap
                 val binaryBitmap = BinaryBitmap(HybridBinarizer(rgbLuminanceSource))
@@ -285,12 +296,12 @@ class MainActivity : AppCompatActivity() {
             }
             
             val response = httpPost("$serverUrl/api/device-conn/register", payload.toString())
-            val result = JSONObject(response)
+            val registerResult = JSONObject(response)
             
-            if (result.getInt("code") == 200) {
-                val data = result.getJSONObject("data")
-                deviceId = data.getInt("device_id")
-                deviceToken = data.getString("device_token")
+            if (registerResult.getInt("code") == 200) {
+                val data = registerResult.getJSONObject("data")
+                setDeviceId(data.getInt("device_id"))
+                setDeviceToken(data.getString("device_token"))
                 
                 // 保存配置
                 saveConfig()
@@ -301,7 +312,7 @@ class MainActivity : AppCompatActivity() {
                     startHeartbeat()
                 }
             } else {
-                throw Exception(result.getString("message"))
+                throw Exception(registerResult.getString("message"))
             }
         } catch (e: Exception) {
             Log.e(TAG, "Registration failed", e)
@@ -350,9 +361,9 @@ class MainActivity : AppCompatActivity() {
             }
             
             clearConfig()
-            deviceId = null
-            deviceToken = null
-            serverUrl = null
+            setDeviceId(null)
+            setDeviceToken(null)
+            setServerUrl(null)
             
             runOnUiThread {
                 Toast.makeText(this@MainActivity, "已断开连接", Toast.LENGTH_SHORT).show()
@@ -363,9 +374,9 @@ class MainActivity : AppCompatActivity() {
 
     private fun isServerConfigured(): Boolean {
         val prefs = getSharedPreferences("wireless_control", MODE_PRIVATE)
-        serverUrl = prefs.getString("server_url", null)
-        deviceToken = prefs.getString("device_token", null)
-        deviceId = prefs.getInt("device_id", -1)
+        setServerUrl(prefs.getString("server_url", null))
+        setDeviceToken(prefs.getString("device_token", null))
+        setDeviceId(prefs.getInt("device_id", -1))
         return serverUrl != null && deviceToken != null && deviceId != -1
     }
 
@@ -434,7 +445,7 @@ class MainActivity : AppCompatActivity() {
                     put("content", message)
                 }
                 
-                httpClient.post("$serverUrl/api/device-conn/message", payload.toString())
+                httpPost("$serverUrl/api/device-conn/message", payload.toString())
                 Log.d(TAG, "QQ message reported")
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to report message", e)

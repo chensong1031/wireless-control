@@ -4,6 +4,11 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.util.Log
 import fi.iki.elonen.NanoHTTPD
+import fi.iki.elonen.NanoHTTPD.IHTTPSession
+import fi.iki.elonen.NanoHTTPD.Method
+import fi.iki.elonen.NanoHTTPD.Response
+import fi.iki.elonen.NanoHTTPD.Response.IStatus
+import fi.iki.elonen.NanoHTTPD.Response.Status
 import org.json.JSONObject
 import java.io.File
 import java.text.SimpleDateFormat
@@ -65,9 +70,9 @@ class DeviceControlServer(
         }
     }
 
-    fun stop() {
+    fun stop(): Boolean {
         if (!isRunning) {
-            return
+            return false
         }
 
         return try {
@@ -241,12 +246,12 @@ class DeviceControlServer(
                 Log.i(TAG, "Message to be sent: $content to chat: $chatId (type: $type)")
                 
                 jsonResponse(success(mapOf(
-                    "messageId", "msg_${System.currentTimeMillis()}",
-                    "content", content,
-                    "chatId", chatId,
-                    "type", type,
-                    "status", "queued",
-                    "timestamp", System.currentTimeMillis()
+                    "messageId" to "msg_${System.currentTimeMillis()}",
+                    "content" to content,
+                    "chatId" to chatId,
+                    "type" to type,
+                    "status" to "queued",
+                    "timestamp" to System.currentTimeMillis()
                 )))
             }
         } catch (e: Exception) {
@@ -297,7 +302,7 @@ class DeviceControlServer(
             is String -> data
             else -> JSONObject().apply { put("data", data) }.toString()
         }
-        return newFixedLengthResponse(
+        return NanoHTTPD.newFixedLengthResponse(
             Response.Status.lookup(statusCode),
             JSON_CONTENT_TYPE,
             jsonBody
