@@ -8,16 +8,16 @@
         android:minSdkVersion="29"
         android:targetSdkVersion="34" />
 
-    <!-- 相机权限 -->
+    <!-- 网络权限 -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+    <!-- 相机权限 - 扫码需要 -->
     <uses-feature
         android:name="android.hardware.camera"
         android:required="false" />
 
     <uses-permission android:name="android.permission.CAMERA" />
-
-    <!-- 网络权限 -->
-    <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
     <permission
         android:name="com.wireless.control.device.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
@@ -33,28 +33,10 @@
         android:label="工作通"
         android:supportsRtl="true" >
 
-        <!-- Xposed 模块声明 -->
-        <meta-data
-            android:name="xposedmodule"
-            android:value="true" />
-
-        <!-- Xposed 描述 -->
-        <meta-data
-            android:name="xposeddescription"
-            android:value="工作通设备端模块，用于 Hook 微信/QQ 消息和系统UI" />
-
-        <!-- Xposed API 版本 -->
-        <meta-data
-            android:name="xposedminversion"
-            android:value="53" />
-
-        <!-- Xposed 作用域 -->
-        <meta-data
-            android:name="xposedscope"
-            android:value="com.tencent.mm,com.tencent.mobileqq,com.android.systemui" />
+        <!-- 测试版：移除 Xposed 模块声明 -->
 
         <activity
-            android:name="com.wireless.control.device.SimpleMainActivity"
+            android:name="com.wireless.control.device.TestMainActivity"
             android:exported="true" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -62,9 +44,14 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!-- 保留其他 Activity 但不设为启动入口 -->
         <activity
             android:name="com.wireless.control.device.MainActivity"
-            android:exported="true" />
+            android:exported="false" />
+        <activity
+            android:name="com.wireless.control.device.SimpleMainActivity"
+            android:exported="false" />
 
         <service
             android:name="androidx.camera.core.impl.MetadataHolderService"

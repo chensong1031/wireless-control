@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- 网络权限 -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+    <!-- 相机权限 - 扫码需要 -->
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
+    <uses-permission android:name="android.permission.CAMERA" />
+
+    <application
+        android:name=".TestMainActivity"
+        android:allowBackup="true"
+        android:label="工作通测试版"
+        android:supportsRtl="true">
+
+        <!-- 测试版：移除 Xposed 模块声明 -->
+
+        <activity
+            android:name=".TestMainActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <!-- 保留其他 Activity 但不设为启动入口 -->
+        <activity
+            android:name=".MainActivity"
+            android:exported="false" />
+            
+        <activity
+            android:name=".SimpleMainActivity"
+            android:exported="false" />
+
+    </application>
+
+</manifest>
