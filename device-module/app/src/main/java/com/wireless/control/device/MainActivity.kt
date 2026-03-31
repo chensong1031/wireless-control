@@ -330,6 +330,8 @@ class MainActivity : AppCompatActivity() {
                 Log.i(TAG, "Step 7: Saving config")
                 saveConfig()
                 
+                Log.i(TAG, "✓ Config saved successfully")
+                
                 Log.i(TAG, "Step 8: Switching to connected mode")
                 runOnUiThread {
                     Toast.makeText(this, "注册成功！", Toast.LENGTH_SHORT).show()
@@ -414,12 +416,24 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun saveConfig() {
-        val prefs = getSharedPreferences("wireless_control", MODE_PRIVATE)
-        prefs.edit().apply {
-            putString("server_url", serverUrl)
-            putString("device_token", deviceToken)
-            putInt("device_id", deviceId ?: -1)
-            apply()
+        try {
+            Log.d(TAG, "saveConfig: Creating SharedPreferences")
+            val prefs = getSharedPreferences("wireless_control", MODE_PRIVATE)
+            Log.d(TAG, "saveConfig: Created editor")
+            
+            val editor = prefs.edit()
+            Log.d(TAG, "saveConfig: Created editor, adding values")
+            editor.putString("server_url", serverUrl)
+            editor.putString("device_token", deviceToken)
+            editor.putInt("device_id", deviceId ?: -1)
+            Log.d(TAG, "saveConfig: Values added, committing")
+            editor.apply()
+            Log.d(TAG, "saveConfig: ✓ Committed")
+        } catch (e: Exception) {
+            Log.e(TAG, "✗ saveConfig failed", e)
+            Log.e(TAG, "✗ Exception type: ${e.javaClass.name}")
+            Log.e(TAG, "✗ Exception message: ${e.message}")
+            Log.e(TAG, "✗ Stack trace:", e)
         }
     }
 
