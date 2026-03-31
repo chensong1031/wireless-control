@@ -3,10 +3,10 @@ package com.wireless.control.device
 import android.os.Bundle
 import android.util.Log
 import android.widget.TextView
-import android.widget.Toast
+import android.widget.Button
 
 /**
- * 简化版 MainActivity
+ * 中等复杂度测试版
  */
 class SimpleMainActivity : android.app.Activity() {
 
@@ -20,18 +20,38 @@ class SimpleMainActivity : android.app.Activity() {
         Log.d(TAG, "onCreate started")
         
         try {
-            val textView = TextView(this)
-            textView.text = "工作通 - 简化版\n\n点击按钮测试"
-            textView.textSize = 20f
-            textView.gravity = android.view.Gravity.CENTER
-            textView.setPadding(50, 50, 50, 50)
+            // 创建一个带按钮的布局
+            val layout = android.widget.LinearLayout(this)
+            layout.orientation = android.widget.LinearLayout.VERTICAL
+            layout.setPadding(50, 50, 50, 50)
+            layout.gravity = android.view.Gravity.CENTER
             
-            setContentView(textView)
+            // 标题
+            val title = TextView(this)
+            title.text = "工作通 - 测试版"
+            title.textSize = 28f
+            title.setPadding(0, 0, 0, 50)
+            layout.addView(title)
+            
+            // 状态
+            val status = TextView(this)
+            status.text = "HTTP 服务器启动中..."
+            status.textSize = 16f
+            layout.addView(status)
+            
+            // 按钮
+            val button = Button(this)
+            button.text = "测试按钮"
+            layout.addView(button)
+            
+            setContentView(layout)
             
             Log.d(TAG, "✓ onCreate completed")
             
-            // 测试 Toast
-            Toast.makeText(this, "应用正常运行!", Toast.LENGTH_SHORT).show()
+            // 3秒后更新状态
+            button.postDelayed({
+                status.text = "HTTP 服务器: 运行中\n端口: 8080"
+            }, 3000)
             
         } catch (e: Exception) {
             Log.e(TAG, "✗ onCreate failed", e)
