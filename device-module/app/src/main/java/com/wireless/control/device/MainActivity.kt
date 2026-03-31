@@ -254,8 +254,17 @@ class MainActivity : AppCompatActivity() {
                 stopCamera()
                 
                 // 执行注册
+                Log.i(TAG, "About to launch registration coroutine")
                 GlobalScope.launch(Dispatchers.IO) {
-                    registerToDeviceServer(token)
+                    try {
+                        Log.i(TAG, "Starting registration in coroutine")
+                        registerToDeviceServer(token)
+                    } catch (e: Exception) {
+                        Log.e(TAG, "✗ Registration coroutine failed", e)
+                        runOnUiThread {
+                            statusTextView.text = "注册异常: ${e.javaClass.simpleName}\n${e.message}"
+                        }
+                    }
                 }
             } else {
                 // 二维码格式不对
@@ -274,7 +283,10 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun registerToDeviceServer(token: String) {
+        Log.i(TAG, "registerToDeviceServer called, token: ${token.take(10)}...")
+        
         try {
+            Log.i(TAG, "Step 1: Building device info")
             val deviceInfo = JSONObject().apply {
                 put("name", android.os.Build.MODEL)
                 put("brand", android.os.Build.BRAND)
@@ -282,36 +294,61 @@ class MainActivity : AppCompatActivity() {
                 put("version", android.os.Build.VERSION.RELEASE)
                 put("sdk", android.os.Build.VERSION.SDK_INT)
             }
+            Log.d(TAG, "Device info built: $deviceInfo")
             
+            Log.i(TAG, "Step 2: Building payload")
             val payload = JSONObject().apply {
                 put("token", token)
                 put("device_info", deviceInfo)
             }
+            Log.d(TAG, "Payload built: $payload")
             
-            val response = httpPost("$serverUrl/api/device-conn/register", payload.toString())
+            Log.i(TAG, "Step 3: Building URL: $serverUrl/api/device-conn/register")
+            val fullUrl = "$serverUrl/api/device-conn/register"
+            
+            Log.i(TAG, "Step 4: Making HTTP POST request")
+            val response = httpPost(fullUrl, payload.toString())
+            Log.i(TAG, "HTTP response received: ${response.take(200)}")
+            
+            Log.i(TAG, "Step 5: Parsing JSON response")
             val registerResult = JSONObject(response)
+            val code = registerResult.getInt("code")
+            Log.i(TAG, "Response code: $code")
             
-            if (registerResult.getInt("code") == 200) {
+            if (code == 200) {
+                Log.i(TAG, "Step 6: Parsing success data")
                 val data = registerResult.getJSONObject("data")
-                setDeviceId(data.getInt("device_id"))
-                setDeviceToken(data.getString("device_token"))
+                val deviceId = data.getInt("device_id")
+                val deviceToken = data.getString("device_token")
+                Log.i(TAG, "Device ID: $deviceId, Token: ${deviceToken.take(10)}...")
                 
+                setDeviceId(deviceId)
+                setDeviceToken(deviceToken)
+                
+                Log.i(TAG, "Step 7: Saving config")
                 saveConfig()
                 
+                Log.i(TAG, "Step 8: Switching to connected mode")
                 runOnUiThread {
                     Toast.makeText(this, "注册成功！", Toast.LENGTH_SHORT).show()
+                    statusTextView.text = "注册成功！\n设备ID: $deviceId"
                     switchToConnectedMode()
                     startHeartbeat()
                 }
             } else {
-                throw Exception(registerResult.getString("message"))
+                val message = registerResult.getString("message")
+                Log.e(TAG, "Registration failed with code $code: $message")
+                throw Exception(message)
             }
         } catch (e: Exception) {
-            Log.e(TAG, "Registration failed", e)
+            Log.e(TAG, "✗ Registration failed", e)
+            Log.e(TAG, "✗ Exception type: ${e.javaClass.name}")
+            Log.e(TAG, "✗ Exception message: ${e.message}")
+            Log.e(TAG, "✗ Stack trace:", e)
+            
             runOnUiThread {
                 Toast.makeText(this, "注册失败: ${e.message}", Toast.LENGTH_SHORT).show()
-                statusTextView.text = "注册失败\n${e.message}\n请点击按钮重新扫码"
-                // 不自动重新开始扫描，让用户手动点击
+                statusTextView.text = "注册失败\n${e.javaClass.simpleName}\n${e.message}"
                 actionButton.isEnabled = true
                 actionButton.text = "重新扫码"
             }
@@ -447,16 +484,6 @@ class MainActivity : AppCompatActivity() {
         val request = Request.Builder()
             .url(url)
             .post(requestBody)
-            .build()
-        
-        val response = httpClient.newCall(request).execute()
-        return response.body?.string() ?: throw Exception("Empty response")
-    }
-    
-    private fun httpGet(url: String): String {
-        val request = Request.Builder()
-            .url(url)
-            .get()
             .build()
         
         val response = httpClient.newCall(request).execute()
