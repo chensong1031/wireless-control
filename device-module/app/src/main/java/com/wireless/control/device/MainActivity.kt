@@ -335,10 +335,8 @@ class MainActivity : AppCompatActivity() {
                     Toast.makeText(this, "注册成功！", Toast.LENGTH_SHORT).show()
                     statusTextView.text = "注册成功！\n设备ID: $deviceId"
                     switchToConnectedMode()
-                    // 延迟启动心跳，避免阻塞UI
-                    Handler(Looper.getMainLooper()).postDelayed({
-                        startHeartbeat()
-                    }, 1000)
+                    // 暂时禁用心跳功能
+                    Log.i(TAG, "⚠ Heartbeat disabled for testing")
                 }
             } else {
                 val message = registerResult.getString("message")
