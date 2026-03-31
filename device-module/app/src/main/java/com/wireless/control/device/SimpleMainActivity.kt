@@ -9,10 +9,12 @@ import android.os.Handler
 import android.os.Looper
 
 /**
- * 延迟启动服务器测试版
+ * 真实HTTP服务器测试版
  */
 class SimpleMainActivity : android.app.Activity() {
 
+    private var httpServer: com.wireless.control.device.server.DeviceControlServer? = null
+    
     override fun onCreate(savedInstanceState: android.os.Bundle?) {
         super.onCreate(savedInstanceState)
         
@@ -45,29 +47,44 @@ class SimpleMainActivity : android.app.Activity() {
         
         setContentView(layout)
         
-        // 按钮点击事件 - 延迟启动服务器
+        // 按钮点击事件 - 真正启动HTTP服务器
         button.setOnClickListener {
             status.text = "正在启动服务器..."
             button.isEnabled = false
             
-            // 延迟2秒后启动，避免阻塞UI
+            // 在后台线程启动，避免阻塞UI
             Handler(Looper.getMainLooper()).postDelayed({
                 try {
-                    startHttpServer()
-                    status.text = "HTTP服务器: 启动成功！\n端口: 8080"
-                    status.setTextColor(Color.GREEN)
-                    button.text = "已启动"
+                    // 真正创建和启动HTTP服务器
+                    httpServer = com.wireless.control.device.server.DeviceControlServer(this@SimpleMainActivity, 8080)
+                    val started = httpServer?.start() ?: false
+                    
+                    if (started) {
+                        status.text = "HTTP服务器: 启动成功！\n端口: 8080"
+                        status.setTextColor(Color.GREEN)
+                        button.text = "已启动"
+                    } else {
+                        status.text = "HTTP服务器: 启动失败"
+                        status.setTextColor(Color.RED)
+                        button.isEnabled = true
+                    }
                 } catch (e: Exception) {
-                    status.text = "HTTP服务器: 启动失败\n${e.message}"
+                    status.text = "HTTP服务器: 启动失败\n${e.javaClass.simpleName}: ${e.message}"
                     status.setTextColor(Color.RED)
                     button.isEnabled = true
+                    e.printStackTrace()
                 }
-            }, 2000)
+            }, 500)
         }
     }
     
-    private fun startHttpServer() {
-        // 暂时先不实际启动，只测试UI流程
-        // 如果这个版本不闪退，再真正启动服务器
+    override fun onDestroy() {
+        super.onDestroy()
+        // 停止HTTP服务器
+        try {
+            httpServer?.stop()
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
     }
 }
