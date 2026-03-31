@@ -74,8 +74,36 @@
 - ✅ 心跳功能（30秒间隔）
 - ✅ 消息上报功能
 - ✅ 应用名称：工作通
-- ✅ 心跳功能（30秒间隔）
-- ✅ 消息上报功能
+- ✅ **闪退问题已修复**（2026-03-31）
+
+---
+
+## 🐛 已修复的严重问题
+
+### 2026-03-31：设备端闪退问题
+
+**问题1：HTTP 服务器启动阻塞主线程**
+- **错误现象：** 应用打开立即闪退
+- **根本原因：** 在 `Application.onCreate()` 中立即启动 HTTP 服务器，阻塞主线程
+- **解决方案：** 延迟 2 秒后在后台线程启动服务器
+- **代码位置：** `WirelessControlApp.kt`
+- **修复时间：** 2026-03-31 下午
+
+**问题2：AppCompat 主题缺失**
+- **错误现象：** `IllegalStateException: You need to use a Theme.AppCompat theme`
+- **根本原因：** MainActivity 继承 AppCompatActivity，但 AndroidManifest.xml 中未设置 AppCompat 主题
+- **解决方案：** 在 AndroidManifest.xml 中添加 `android:theme="@style/Theme.AppCompat.Light.DarkActionBar"`
+- **代码位置：** `AndroidManifest.xml`
+- **修复时间：** 2026-03-31 下午
+
+**排查过程：**
+1. 创建空白版本（无界面）→ ✅ 成功
+2. 添加 TextView → ✅ 成功
+3. 添加 Button + 点击事件 → ✅ 成功
+4. 添加模拟 HTTP 启动（延迟）→ ✅ 成功
+5. 添加真实 HTTP 服务器启动 → ✅ 成功
+6. 恢复完整版 MainActivity → ❌ 闪退
+7. 查看日志发现 AppCompat 主题缺失 → ✅ 修复
 
 ---
 
@@ -90,6 +118,7 @@
 | 2026-03-30 上午 | **项目全部完成！** 微信/QQ Hook 成功 |
 | 2026-03-30 下午 | 扫码配置功能开发完成（服务端 + 设备端） |
 | 2026-03-30 晚上 | 扫码注册集成到设备管理页面，后端登录系统修复 |
+| **2026-03-31** | **闪退问题排查与修复**：发现 HTTP 服务器阻塞主线程导致崩溃，通过延迟启动修复；发现 AppCompat 主题缺失导致崩溃，通过添加主题配置修复 |
 
 ---
 
@@ -100,6 +129,7 @@
 - **独立二维码页面：** http://101.43.0.77/qrcode.html
 - **设备管理：** http://101.43.0.77/#/devices
 - **GitHub 仓库：** https://github.com/chensong1031/wireless-control
+- **最新APK（Build #44）：** https://github.com/chensong1031/wireless-control/actions/runs/23784944558
 - **Magisk：** v25.2
 - **LSPosed：** v1.9.3
 
