@@ -218,7 +218,10 @@ class MainActivity : AppCompatActivity() {
                         Log.i(TAG, "Scanned QR code: $qrData")
                         // 立即停止扫描
                         isScanning = false
-                        handleQRCodeData(qrData)
+                        // 在主线程中处理二维码数据
+                        runOnUiThread {
+                            handleQRCodeData(qrData)
+                        }
                         return
                     }
                 } catch (e: Exception) {
