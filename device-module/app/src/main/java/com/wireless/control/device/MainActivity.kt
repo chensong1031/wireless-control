@@ -120,16 +120,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun checkServerStatus() {
-        try {
-            val server = WirelessControlApp.getServer()
-            if (server != null) {
-                Log.i(TAG, "✓ HTTP server is running on port 8080")
-            } else {
-                Log.w(TAG, "⚠ HTTP server is not running")
-            }
-        } catch (e: Exception) {
-            Log.e(TAG, "✗ Failed to check server status", e)
-        }
+        // 暂时禁用服务器状态检查
+        Log.d(TAG, "Server status check disabled")
     }
 
     private fun switchToScanMode() {
