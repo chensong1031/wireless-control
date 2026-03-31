@@ -32,7 +32,8 @@
         android:debuggable="true"
         android:extractNativeLibs="false"
         android:label="工作通"
-        android:supportsRtl="true" >
+        android:supportsRtl="true"
+        android:theme="@style/Theme.AppCompat.Light.DarkActionBar" >
 
         <!-- 正式入口 - 完整版 MainActivity -->
         <activity

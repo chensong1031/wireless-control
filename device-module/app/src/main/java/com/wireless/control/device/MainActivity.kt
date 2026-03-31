@@ -27,10 +27,6 @@ import org.json.JSONObject
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
-/**
- * 设备控制主Activity
- * 功能：扫码注册、连接服务器、心跳上报、消息上报
- */
 class MainActivity : AppCompatActivity() {
 
     companion object {
@@ -84,7 +80,6 @@ class MainActivity : AppCompatActivity() {
             setContentView(R.layout.activity_main)
             initViews()
             
-            // 检查是否已配置服务器
             if (isServerConfigured()) {
                 switchToConnectedMode()
                 startHeartbeat()
