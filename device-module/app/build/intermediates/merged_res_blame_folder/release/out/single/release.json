@@ -1,0 +1,18 @@
+[
+    {
+        "merged": "com.wireless.control.device.app-merged_res-41:/layout_activity_main.xml.flat",
+        "source": "com.wireless.control.device.app-main-42:/layout/activity_main.xml"
+    },
+    {
+        "merged": "com.wireless.control.device.app-merged_res-41:/xml_backup_rules.xml.flat",
+        "source": "com.wireless.control.device.app-main-42:/xml/backup_rules.xml"
+    },
+    {
+        "merged": "com.wireless.control.device.app-merged_res-41:/xml_data_extraction_rules.xml.flat",
+        "source": "com.wireless.control.device.app-main-42:/xml/data_extraction_rules.xml"
+    },
+    {
+        "merged": "com.wireless.control.device.app-merged_res-41:/xml_accessibility_service_config.xml.flat",
+        "source": "com.wireless.control.device.app-main-42:/xml/accessibility_service_config.xml"
+    }
+]

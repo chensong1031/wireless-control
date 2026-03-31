@@ -147,20 +147,19 @@ echo ""
 
 # 复制到部署目录
 print_step "6" "复制到部署目录..."
+
+# 方式1: 复制到deploy目录（原来的方式）
 DEPLOY_DIR="$SCRIPT_DIR/deploy"
 mkdir -p "$DEPLOY_DIR"
-
 cp app/build/outputs/apk/debug/app-debug.apk "$DEPLOY_DIR/"
 cp "$RELEASE_APK" "$DEPLOY_DIR/"
+print_success "复制到 deploy 目录完成"
 
-# 重命名Release版本
-if [ "$BUILD_RELEASE_SIGNED" = true ]; then
-    cp "$RELEASE_APK" "$DEPLOY_DIR/app-release-signed.apk"
-else
-    cp "$RELEASE_APK" "$DEPLOY_DIR/app-release-unsigned.apk"
-fi
-
-print_success "复制完成"
+# 方式2: 复制到workspace/projects/projects/projects目录（新的方式）
+WORKSPACE_DEPLOY_DIR="/workspace/projects/workspace/projects/apk"
+mkdir -p "$WORKSPACE_DEPLOY_DIR"
+cp app/build/outputs/apk/debug/app-debug.apk "$WORKSPACE_DEPLOY_DIR/worktone-latest.apk"
+print_success "复制到 workspace/projects/projects/apk 目录完成"
 echo ""
 
 # 输出构建信息
