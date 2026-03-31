@@ -54,11 +54,11 @@
 35        android:supportsRtl="true" >
 35-->/workspace/projects/workspace-main/device-module/app/src/main/AndroidManifest.xml:16:9-35
 36
-37        <!-- 测试入口 -->
+37        <!-- 正式入口 - 完整版 MainActivity -->
 38        <activity
 38-->/workspace/projects/workspace-main/device-module/app/src/main/AndroidManifest.xml:19:9-26:20
-39            android:name="com.wireless.control.device.SimpleMainActivity"
-39-->/workspace/projects/workspace-main/device-module/app/src/main/AndroidManifest.xml:20:13-47
+39            android:name="com.wireless.control.device.MainActivity"
+39-->/workspace/projects/workspace-main/device-module/app/src/main/AndroidManifest.xml:20:13-41
 40            android:exported="true" >
 40-->/workspace/projects/workspace-main/device-module/app/src/main/AndroidManifest.xml:21:13-36
 41            <intent-filter>

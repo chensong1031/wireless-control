@@ -117,12 +117,12 @@ MERGED from [androidx.startup:startup-runtime:1.1.1] /root/.gradle/caches/transf
 		ADDED from /workspace/projects/workspace-main/device-module/app/src/main/AndroidManifest.xml:14:9-35
 	android:name
 		ADDED from /workspace/projects/workspace-main/device-module/app/src/main/AndroidManifest.xml:13:9-43
-activity#com.wireless.control.device.SimpleMainActivity
+activity#com.wireless.control.device.MainActivity
 ADDED from /workspace/projects/workspace-main/device-module/app/src/main/AndroidManifest.xml:19:9-26:20
 	android:exported
 		ADDED from /workspace/projects/workspace-main/device-module/app/src/main/AndroidManifest.xml:21:13-36
 	android:name
-		ADDED from /workspace/projects/workspace-main/device-module/app/src/main/AndroidManifest.xml:20:13-47
+		ADDED from /workspace/projects/workspace-main/device-module/app/src/main/AndroidManifest.xml:20:13-41
 intent-filter#action:name:android.intent.action.MAIN+category:name:android.intent.category.LAUNCHER
 ADDED from /workspace/projects/workspace-main/device-module/app/src/main/AndroidManifest.xml:22:13-25:29
 action#android.intent.action.MAIN

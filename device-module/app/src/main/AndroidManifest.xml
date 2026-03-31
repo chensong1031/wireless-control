@@ -15,9 +15,9 @@
         android:label="工作通"
         android:supportsRtl="true">
 
-        <!-- 测试入口 -->
+        <!-- 正式入口 - 完整版 MainActivity -->
         <activity
-            android:name=".SimpleMainActivity"
+            android:name=".MainActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

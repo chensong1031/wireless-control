@@ -24,7 +24,6 @@ import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONObject
-import java.io.IOException
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
@@ -84,7 +83,6 @@ class MainActivity : AppCompatActivity() {
         try {
             setContentView(R.layout.activity_main)
             initViews()
-            checkServerStatus()
             
             // 检查是否已配置服务器
             if (isServerConfigured()) {
@@ -98,7 +96,6 @@ class MainActivity : AppCompatActivity() {
             try {
                 setContentView(R.layout.activity_main)
             } catch (e2: Exception) {
-                // 如果布局也无法加载，创建一个简单的界面
                 Log.e(TAG, "✗ Failed to set content view", e2)
             }
         }
@@ -117,11 +114,6 @@ class MainActivity : AppCompatActivity() {
                 CONNECTED_MODE -> disconnectFromServer()
             }
         }
-    }
-
-    private fun checkServerStatus() {
-        // 暂时禁用服务器状态检查
-        Log.d(TAG, "Server status check disabled")
     }
 
     private fun switchToScanMode() {
@@ -143,7 +135,6 @@ class MainActivity : AppCompatActivity() {
             previewView.visibility = android.view.View.GONE
         }
         
-        // 停止相机
         stopCamera()
     }
 
@@ -196,7 +187,6 @@ class MainActivity : AppCompatActivity() {
         try {
             val mediaImage = imageProxy.image
             if (mediaImage != null && isScanning) {
-                // 将 YUV 转换为灰度 IntArray
                 val buffer = mediaImage.planes[0].buffer
                 val yData = ByteArray(buffer.remaining())
                 buffer.get(yData)
@@ -204,19 +194,14 @@ class MainActivity : AppCompatActivity() {
                 val width = mediaImage.width
                 val height = mediaImage.height
                 
-                // YUV 转 IntArray 灰度
                 val luminances = IntArray(width * height)
                 for (i in yData.indices) {
                     luminances[i] = yData[i].toInt() and 0xFF
                 }
                 
-                // 创建 RGBLuminanceSource
                 val rgbLuminanceSource = RGBLuminanceSource(width, height, luminances)
-                
-                // 创建 BinaryBitmap
                 val binaryBitmap = BinaryBitmap(HybridBinarizer(rgbLuminanceSource))
                 
-                // 创建 MultiFormatReader
                 val reader = MultiFormatReader()
                 val hints = mapOf(
                     DecodeHintType.POSSIBLE_FORMATS to listOf(BarcodeFormat.QR_CODE),
@@ -234,7 +219,6 @@ class MainActivity : AppCompatActivity() {
                         isScanning = false
                     }
                 } catch (e: Exception) {
-                    // 没有找到二维码，继续扫描
                 }
             }
         } catch (e: Exception) {
@@ -277,7 +261,6 @@ class MainActivity : AppCompatActivity() {
 
     private fun registerToDeviceServer(token: String) {
         try {
-            // 获取设备信息
             val deviceInfo = JSONObject().apply {
                 put("name", android.os.Build.MODEL)
                 put("brand", android.os.Build.BRAND)
@@ -299,7 +282,6 @@ class MainActivity : AppCompatActivity() {
                 setDeviceId(data.getInt("device_id"))
                 setDeviceToken(data.getString("device_token"))
                 
-                // 保存配置
                 saveConfig()
                 
                 runOnUiThread {
@@ -324,7 +306,7 @@ class MainActivity : AppCompatActivity() {
     private fun startHeartbeat() {
         GlobalScope.launch(Dispatchers.IO) {
             while (true) {
-                delay(30000) // 每30秒发送一次心跳
+                delay(30000)
                 try {
                     sendHeartbeat()
                 } catch (e: Exception) {
@@ -407,9 +389,6 @@ class MainActivity : AppCompatActivity() {
         stopCamera()
     }
     
-    /**
-     * 上报微信消息
-     */
     fun reportWeChatMessage(message: JSONObject) {
         GlobalScope.launch(Dispatchers.IO) {
             try {
@@ -428,9 +407,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
     
-    /**
-     * 上报QQ消息
-     */
     fun reportQQMessage(message: JSONObject) {
         GlobalScope.launch(Dispatchers.IO) {
             try {
@@ -449,9 +425,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    /**
-     * HTTP POST 请求辅助函数
-     */
     private fun httpPost(url: String, jsonBody: String): String {
         val mediaType = "application/json; charset=utf-8".toMediaType()
         val requestBody = jsonBody.toRequestBody(mediaType)
