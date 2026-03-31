@@ -246,40 +246,16 @@ class MainActivity : AppCompatActivity() {
                 Log.i(TAG, "Token: $token")
                 
                 runOnUiThread {
-                    Toast.makeText(this, "扫描成功，正在测试网络...", Toast.LENGTH_SHORT).show()
-                    statusTextView.text = "扫描成功！\n正在测试网络连接..."
+                    Toast.makeText(this, "扫描成功，正在注册...", Toast.LENGTH_SHORT).show()
+                    statusTextView.text = "扫描成功！\n正在注册到服务器..."
                 }
                 
                 // 停止相机
                 stopCamera()
                 
-                // 测试简单的HTTP连接
+                // 执行注册
                 GlobalScope.launch(Dispatchers.IO) {
-                    try {
-                        // 只测试连接，不发送实际数据
-                        val testUrl = "$serverUrl/api/device-conn/health"
-                        Log.i(TAG, "Testing connection to: $testUrl")
-                        
-                        val request = Request.Builder()
-                            .url(testUrl)
-                            .get()
-                            .build()
-                        
-                        val response = httpClient.newCall(request).execute()
-                        val statusCode = response.code
-                        val body = response.body?.string() ?: "No body"
-                        
-                        Log.i(TAG, "HTTP response code: $statusCode, body: $body")
-                        
-                        runOnUiThread {
-                            statusTextView.text = "网络测试成功！\n状态码: $statusCode\n响应: ${body.take(100)}"
-                        }
-                    } catch (e: Exception) {
-                        Log.e(TAG, "HTTP test failed", e)
-                        runOnUiThread {
-                            statusTextView.text = "网络测试失败：\n${e.javaClass.simpleName}\n${e.message}"
-                        }
-                    }
+                    registerToDeviceServer(token)
                 }
             } else {
                 // 二维码格式不对
