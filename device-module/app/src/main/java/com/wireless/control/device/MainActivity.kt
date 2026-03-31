@@ -246,18 +246,21 @@ class MainActivity : AppCompatActivity() {
                 Log.i(TAG, "Token: $token")
                 
                 runOnUiThread {
-                    Toast.makeText(this, "扫描成功，正在注册...", Toast.LENGTH_SHORT).show()
-                    statusTextView.text = "正在注册到服务器..."
+                    Toast.makeText(this, "扫描成功！\nURL: $serverUrl\nToken: ${token.take(10)}...", Toast.LENGTH_LONG).show()
+                    statusTextView.text = "扫描成功！\nURL: $serverUrl\n\n(网络请求功能暂时禁用)"
                 }
                 
-                // 停止相机和分析
+                // 停止相机
                 stopCamera()
                 
+                // 暂时禁用网络请求，只测试扫描功能
+                /* 
                 GlobalScope.launch(Dispatchers.IO) {
                     registerToDeviceServer(token)
                 }
+                */
             } else {
-                // 二维码格式不对，显示错误但不重新开始扫描
+                // 二维码格式不对
                 runOnUiThread {
                     Toast.makeText(this, "二维码格式错误，请重新扫描", Toast.LENGTH_SHORT).show()
                     statusTextView.text = "二维码格式错误\n请重新扫描"
@@ -267,7 +270,7 @@ class MainActivity : AppCompatActivity() {
             Log.e(TAG, "Failed to parse QR code data", e)
             runOnUiThread {
                 Toast.makeText(this, "二维码格式错误", Toast.LENGTH_SHORT).show()
-                statusTextView.text = "扫码失败，请重试"
+                statusTextView.text = "扫码失败: ${e.message}"
             }
         }
     }
