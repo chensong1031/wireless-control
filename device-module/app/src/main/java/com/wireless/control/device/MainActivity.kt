@@ -179,9 +179,15 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun processImageProxy(imageProxy: ImageProxy) {
+        // 如果不在扫描模式，直接返回
+        if (!isScanning) {
+            imageProxy.close()
+            return
+        }
+        
         try {
             val mediaImage = imageProxy.image
-            if (mediaImage != null && isScanning) {
+            if (mediaImage != null) {
                 val buffer = mediaImage.planes[0].buffer
                 val yData = ByteArray(buffer.remaining())
                 buffer.get(yData)
@@ -210,10 +216,13 @@ class MainActivity : AppCompatActivity() {
                     
                     if (qrData != null && qrData.contains("|")) {
                         Log.i(TAG, "Scanned QR code: $qrData")
-                        handleQRCodeData(qrData)
+                        // 立即停止扫描
                         isScanning = false
+                        handleQRCodeData(qrData)
+                        return
                     }
                 } catch (e: Exception) {
+                    // 没有找到二维码，继续扫描
                 }
             }
         } catch (e: Exception) {
@@ -238,10 +247,17 @@ class MainActivity : AppCompatActivity() {
                     statusTextView.text = "正在注册到服务器..."
                 }
                 
+                // 停止相机和分析
                 stopCamera()
                 
                 GlobalScope.launch(Dispatchers.IO) {
                     registerToDeviceServer(token)
+                }
+            } else {
+                // 二维码格式不对，显示错误但不重新开始扫描
+                runOnUiThread {
+                    Toast.makeText(this, "二维码格式错误，请重新扫描", Toast.LENGTH_SHORT).show()
+                    statusTextView.text = "二维码格式错误\n请重新扫描"
                 }
             }
         } catch (e: Exception) {
@@ -249,7 +265,6 @@ class MainActivity : AppCompatActivity() {
             runOnUiThread {
                 Toast.makeText(this, "二维码格式错误", Toast.LENGTH_SHORT).show()
                 statusTextView.text = "扫码失败，请重试"
-                isScanning = true
             }
         }
     }
@@ -291,9 +306,10 @@ class MainActivity : AppCompatActivity() {
             Log.e(TAG, "Registration failed", e)
             runOnUiThread {
                 Toast.makeText(this, "注册失败: ${e.message}", Toast.LENGTH_SHORT).show()
-                statusTextView.text = "注册失败，请重试"
-                isScanning = true
-                switchToScanMode()
+                statusTextView.text = "注册失败\n${e.message}\n请点击按钮重新扫码"
+                // 不自动重新开始扫描，让用户手动点击
+                actionButton.isEnabled = true
+                actionButton.text = "重新扫码"
             }
         }
     }
