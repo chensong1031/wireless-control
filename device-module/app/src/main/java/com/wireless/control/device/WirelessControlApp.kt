@@ -1,10 +1,11 @@
 package com.wireless.control.device
 
 import android.app.Application
-import android.content.Intent
-import android.os.Build
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import com.wireless.control.device.server.DeviceControlServer
+import java.util.concurrent.Executors
 
 /**
  * 应用类 - 用于启动HTTP服务器
@@ -15,6 +16,7 @@ class WirelessControlApp : Application() {
         private const val TAG = "WirelessControlApp"
         private lateinit var instance: WirelessControlApp
         private var server: DeviceControlServer? = null
+        private val executor = Executors.newSingleThreadExecutor()
         
         fun getInstance(): WirelessControlApp = instance
         fun getServer(): DeviceControlServer? = server
@@ -24,29 +26,32 @@ class WirelessControlApp : Application() {
         super.onCreate()
         instance = this
         
-        // 启动HTTP服务器（添加异常处理防止闪退）
-        try {
-            startServer()
-        } catch (e: Exception) {
-            Log.e(TAG, "✗ Failed to start server", e)
-        }
+        Log.i(TAG, "✓ Application starting...")
+        
+        // 延迟2秒后启动服务器，避免阻塞主线程
+        Handler(Looper.getMainLooper()).postDelayed({
+            startServerAsync()
+        }, 2000)
         
         Log.i(TAG, "✓ Application initialized")
     }
 
-    private fun startServer() {
-        try {
-            server = DeviceControlServer(this, 8080)
-            val started = server?.start() ?: false
-            
-            if (started) {
-                Log.i(TAG, "✓ HTTP server started on port 8080")
-            } else {
-                Log.w(TAG, "⚠ HTTP server failed to start")
+    private fun startServerAsync() {
+        // 在后台线程启动服务器
+        executor.execute {
+            try {
+                Thread.sleep(500) // 额外延迟
+                server = DeviceControlServer(this@WirelessControlApp, 8080)
+                val started = server?.start() ?: false
+                
+                if (started) {
+                    Log.i(TAG, "✓ HTTP server started on port 8080")
+                } else {
+                    Log.w(TAG, "⚠ HTTP server failed to start (returned false)")
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "✗ Exception starting server", e)
             }
-        } catch (e: Exception) {
-            Log.e(TAG, "✗ Exception starting server", e)
-            // 不抛出异常，让应用继续运行
         }
     }
 

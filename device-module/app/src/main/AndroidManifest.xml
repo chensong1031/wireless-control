@@ -10,9 +10,9 @@
         android:label="工作通"
         android:supportsRtl="true">
 
-        <!-- 极简测试入口 -->
+        <!-- 正式入口 -->
         <activity
-            android:name=".SimpleTestActivity"
+            android:name=".SimpleMainActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

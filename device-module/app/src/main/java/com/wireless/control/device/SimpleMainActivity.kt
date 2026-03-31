@@ -3,12 +3,12 @@ package com.wireless.control.device
 import android.os.Bundle
 import android.util.Log
 import android.widget.TextView
-import androidx.appcompat.app.AppCompatActivity
+import android.widget.Toast
 
 /**
- * 简化版 MainActivity - 用于调试崩溃问题
+ * 简化版 MainActivity
  */
-class SimpleMainActivity : AppCompatActivity() {
+class SimpleMainActivity : android.app.Activity() {
 
     companion object {
         private const val TAG = "SimpleMainActivity"
@@ -20,43 +20,22 @@ class SimpleMainActivity : AppCompatActivity() {
         Log.d(TAG, "onCreate started")
         
         try {
-            // 创建一个简单的文本视图
             val textView = TextView(this)
-            textView.text = "工作通 - 简化版"
-            textView.textSize = 24f
+            textView.text = "工作通 - 简化版\n\n点击按钮测试"
+            textView.textSize = 20f
             textView.gravity = android.view.Gravity.CENTER
+            textView.setPadding(50, 50, 50, 50)
             
             setContentView(textView)
             
-            Log.d(TAG, "✓ onCreate completed successfully")
+            Log.d(TAG, "✓ onCreate completed")
+            
+            // 测试 Toast
+            Toast.makeText(this, "应用正常运行!", Toast.LENGTH_SHORT).show()
+            
         } catch (e: Exception) {
             Log.e(TAG, "✗ onCreate failed", e)
             e.printStackTrace()
         }
-    }
-
-    override fun onStart() {
-        super.onStart()
-        Log.d(TAG, "onStart")
-    }
-
-    override fun onResume() {
-        super.onResume()
-        Log.d(TAG, "onResume")
-    }
-
-    override fun onPause() {
-        super.onPause()
-        Log.d(TAG, "onPause")
-    }
-
-    override fun onStop() {
-        super.onStop()
-        Log.d(TAG, "onStop")
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        Log.d(TAG, "onDestroy")
     }
 }
