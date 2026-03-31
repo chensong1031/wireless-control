@@ -3,6 +3,8 @@ package com.wireless.control.device
 import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import android.widget.Button
 import android.widget.TextView
@@ -333,7 +335,10 @@ class MainActivity : AppCompatActivity() {
                     Toast.makeText(this, "注册成功！", Toast.LENGTH_SHORT).show()
                     statusTextView.text = "注册成功！\n设备ID: $deviceId"
                     switchToConnectedMode()
-                    startHeartbeat()
+                    // 延迟启动心跳，避免阻塞UI
+                    Handler(Looper.getMainLooper()).postDelayed({
+                        startHeartbeat()
+                    }, 1000)
                 }
             } else {
                 val message = registerResult.getString("message")
