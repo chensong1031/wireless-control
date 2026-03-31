@@ -246,19 +246,41 @@ class MainActivity : AppCompatActivity() {
                 Log.i(TAG, "Token: $token")
                 
                 runOnUiThread {
-                    Toast.makeText(this, "扫描成功！\nURL: $serverUrl\nToken: ${token.take(10)}...", Toast.LENGTH_LONG).show()
-                    statusTextView.text = "扫描成功！\nURL: $serverUrl\n\n(网络请求功能暂时禁用)"
+                    Toast.makeText(this, "扫描成功，正在测试网络...", Toast.LENGTH_SHORT).show()
+                    statusTextView.text = "扫描成功！\n正在测试网络连接..."
                 }
                 
                 // 停止相机
                 stopCamera()
                 
-                // 暂时禁用网络请求，只测试扫描功能
-                /* 
+                // 测试简单的HTTP连接
                 GlobalScope.launch(Dispatchers.IO) {
-                    registerToDeviceServer(token)
+                    try {
+                        // 只测试连接，不发送实际数据
+                        val testUrl = "$serverUrl/api/device-conn/health"
+                        Log.i(TAG, "Testing connection to: $testUrl")
+                        
+                        val request = Request.Builder()
+                            .url(testUrl)
+                            .get()
+                            .build()
+                        
+                        val response = httpClient.newCall(request).execute()
+                        val statusCode = response.code
+                        val body = response.body?.string() ?: "No body"
+                        
+                        Log.i(TAG, "HTTP response code: $statusCode, body: $body")
+                        
+                        runOnUiThread {
+                            statusTextView.text = "网络测试成功！\n状态码: $statusCode\n响应: ${body.take(100)}"
+                        }
+                    } catch (e: Exception) {
+                        Log.e(TAG, "HTTP test failed", e)
+                        runOnUiThread {
+                            statusTextView.text = "网络测试失败：\n${e.javaClass.simpleName}\n${e.message}"
+                        }
+                    }
                 }
-                */
             } else {
                 // 二维码格式不对
                 runOnUiThread {
@@ -449,6 +471,16 @@ class MainActivity : AppCompatActivity() {
         val request = Request.Builder()
             .url(url)
             .post(requestBody)
+            .build()
+        
+        val response = httpClient.newCall(request).execute()
+        return response.body?.string() ?: throw Exception("Empty response")
+    }
+    
+    private fun httpGet(url: String): String {
+        val request = Request.Builder()
+            .url(url)
+            .get()
             .build()
         
         val response = httpClient.newCall(request).execute()
