@@ -33,7 +33,8 @@
         android:extractNativeLibs="false"
         android:label="工作通"
         android:supportsRtl="true"
-        android:theme="@style/Theme.AppCompat.Light.DarkActionBar" >
+        android:theme="@style/Theme.AppCompat.Light.DarkActionBar"
+        android:usesCleartextTraffic="true" >
 
         <!-- 正式入口 - 完整版 MainActivity -->
         <activity
